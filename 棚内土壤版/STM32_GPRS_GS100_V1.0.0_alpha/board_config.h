@@ -17,35 +17,35 @@
 
 //Serial port config.
 #if DEVICE_V2_5
-#define GSM_Serial                  Serial3
-#define ModBus_Serial               Serial2
-#define LoRa_Serial                 Serial1
+    #define GSM_Serial                  Serial3
+    #define ModBus_Serial               Serial2
+    #define LoRa_Serial                 Serial1
 #elif (DEVICE_V2_2 || DEVICE_V2_4)
-#define GSM_Serial                  Serial2
-#define ModBus_Serial               Serial3
-#define LoRa_Serial                 Serial1
+    #define GSM_Serial                  Serial2
+    #define ModBus_Serial               Serial3
+    #define LoRa_Serial                 Serial1
 #endif
 
 //Button config
 #if DEVICE_V2_2
-#define KEY1_INPUT                  PA0
-#define KEY2_INPUT                  PA1
+    #define KEY1_INPUT                  PA0
+    #define KEY2_INPUT                  PA1
 #elif (DEVICE_V2_4 || DEVICE_V2_5)
-#define KEY1_INPUT                  PA4
-#define KEY2_INPUT                  PA5
+    #define KEY1_INPUT                  PA4
+    #define KEY2_INPUT                  PA5
 #endif
 
 //LED config
 #if DEVICE_V2_5
-#define LED1                        PC2
-#define LED2                        PC3
-#define LED3                        PC0
-#define LED4                        PC1
+    #define LED1                        PC2
+    #define LED2                        PC3
+    #define LED3                        PC0
+    #define LED4                        PC1
 #elif (DEVICE_V2_2 || DEVICE_V2_4)
-#define LED1                        PC6
-#define LED2                        PC7
-#define LED3                        PB14
-#define LED4                        PB15
+    #define LED1                        PC6
+    #define LED2                        PC7
+    #define LED3                        PB14
+    #define LED4                        PB15
 #endif
 
 //External ADC config
@@ -53,56 +53,57 @@
 
 //外设电源、信号控制IO,输出控制
 #if DEVICE_V2_5
-#define DC12V_PWR_PIN               PB12
-#define RS485_BUS_PWR_PIN           PB13
-#define LORA_PWR_PIN                PB8
-#define LORA_M0_PIN                 PD2
-#define LORA_M1_PIN                 PB3
-#define LORA_AUX_PIN                PC13
+    #define DC12V_PWR_PIN               PB12
+    #define RS485_BUS_PWR_PIN           PB13
+    #define LORA_PWR_PIN                PB8
+    #define LORA_M0_PIN                 PD2
+    #define LORA_M1_PIN                 PB3
+    #define LORA_AUX_PIN                PC13
 #elif (DEVICE_V2_2 || DEVICE_V2_4)
-#define DC12V_PWR_PIN               PB12
-#define RS485_BUS_PWR_PIN           PB0 
-#define LORA_PWR_PIN                PB8
-#define LORA_M0_PIN                 PC10
-#define LORA_M1_PIN                 PB5
-#define LORA_AUX_PIN                PC13
+    #define DC12V_PWR_PIN               PB12
+    #define RS485_BUS_PWR_PIN           PB0 
+    #define LORA_PWR_PIN                PB8
+    #define LORA_M0_PIN                 PC10
+    #define LORA_M1_PIN                 PB5
+    #define LORA_AUX_PIN                PC13
 #endif
 
 //EEPROM W/R enable pin.
 #if DEVICE_V2_5
-#define WP_PIN                      PB5
+    #define WP_PIN                      PB5
 #endif
 
 //USB使能脚
 #if DEVICE_V2_5
-#define USB_EN_PIN                  PB15
+    #define USB_EN_PIN                  PB15
 #elif (DEVICE_V2_2 || DEVICE_V2_4)
-#define USB_EN_PIN                  PB9
+    #define USB_EN_PIN                  PB9
 #endif
 
 //GPRS相关引脚
 #if DEVICE_V2_5
-#define GPS_ANT_PWR_CON_PIN         PC12
-#define GPRS_RST_PIN                PC10
-#define GPRS_PWRKEY_PIN             PC11
-#define GPRS_PWR_CON_PIN            PB4
-//#define NETLIGHT_PIN                PA15
+    #define GPS_ANT_PWR_CON_PIN         PC12
+    #define GPRS_RST_PIN                PC10
+    #define GPRS_PWRKEY_PIN             PC11
+    #define GPRS_PWR_CON_PIN            PB4
+    //#define NETLIGHT_PIN                PA15
 #elif (DEVICE_V2_2 || DEVICE_V2_4)
-#define GPS_ANT_PWR_CON_PIN         PC12
-#define GPRS_RST_PIN                PB4
-#define GPRS_PWRKEY_PIN             PA15
-#define GPRS_PWR_CON_PIN            PD2  
+    #define GPS_ANT_PWR_CON_PIN         PC12
+    #define GPRS_RST_PIN                PB4
+    #define GPRS_PWRKEY_PIN             PA15
+    #define GPRS_PWR_CON_PIN            PD2  
 #endif
 
 #if DEVICE_V2_5
-#define ANALOGY_PIN_1               PC4
-#define ANALOGY_PIN_2               PA7
-#define ANALOGY_PIN_3               PA6
+    #define ANALOGY_PIN_1               PC4
+    #define ANALOGY_PIN_2               PA7
+    #define ANALOGY_PIN_3               PA6
 #elif (DEVICE_V2_2 || DEVICE_V2_4)
-#define ANALOGY_PIN_1               PC5
-#define ANALOGY_PIN_2               PC4
-#define ANALOGY_PIN_3               PA7
+    #define ANALOGY_PIN_1               PC5
+    #define ANALOGY_PIN_2               PC4
+    #define ANALOGY_PIN_3               PA7
 #endif
+
 
 //ADC定义,12位ADC，参考电压为3.3V
 #define ADC_RATE                            0.8056 //3300/4096

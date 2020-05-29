@@ -12,55 +12,55 @@
 #include "private_delay.h"
 #include "Periph.h"
 #include "Private_RTC.h"
-
 TinyGsm modem(GSM_Serial);
+
 TinyGsmClient client(modem);
 
-unsigned int Run_Time_Out_Sec = 0;          //运行超时计数
-char Toggle = 0;                            //状态灯闪灭位翻转
+unsigned int Run_Time_Out_Sec = 0; //运行超时计数
+char Toggle = 0;				   //状态灯闪灭位翻转
 
 void setup()
 {
-  Some_GPIO_Init();//IO口初始化定义
+	Some_GPIO_Init(); //IO口初始化定义
 
-  Serial.begin(9600); //USB serial port.
-  ModBus_Serial.begin(9600);
-  GSM_Serial.begin(9600);
-  
-  bkp_init();
+	Serial.begin(115200); //USB serial port.
+	ModBus_Serial.begin(9600);
+	GSM_Serial.begin(9600);
 
-  //初始化RTC闹钟
-  Init_RTC(180);
+	bkp_init();
 
-  //如果电池电压小于6.5V，设备休眠
-  if(Get_Bat_Voltage(DEFAULT_VOL_CHANGE_TIMES) < MIN_BAT_VOL)
-    SYS_Sleep();
+	//初始化RTC闹钟
+	Init_RTC(180);
 
-  System_ID_Self_Check(SysHostID);
+	//如果电池电压小于6.5V，设备休眠
+	if (Get_Bat_Voltage(DEFAULT_VOL_CHANGE_TIMES) < MIN_BAT_VOL)
+		SYS_Sleep();
 
-  Key_Clear_Device_Parameter(); //按键清除系统参数，慎用
-  Key_Clear_Muti_Sensor_Data();
+	System_ID_Self_Check(SysHostID); //系统ID自检
 
-  //初始化定时器2
-  Timer2.setChannel1Mode(TIMER_OUTPUTCOMPARE);
-  Timer2.setPeriod(1000000); // in microseconds，1S
-  Timer2.setCompare1(1);   // overflow might be small
-  Timer2.attachCompare1Interrupt(Time2_Handler);
+	Key_Clear_Device_Parameter(); //按键清除系统参数，慎用
+	Key_Clear_Muti_Sensor_Data(); //按键清除XXX
 
-  //RS485模块开始采集传感器数据
-  Data_Acquisition();
-} 
+	//初始化定时器2
+	Timer2.setChannel1Mode(TIMER_OUTPUTCOMPARE);
+	Timer2.setPeriod(1000000); // in microseconds，1S
+	Timer2.setCompare1(1);	   // overflow might be small
+	Timer2.attachCompare1Interrupt(Time2_Handler);
+
+	//RS485模块开始采集传感器数据
+	Data_Acquisition();
+}
 
 void loop()
 {
-  if(Get_Bat_Voltage(DEFAULT_VOL_CHANGE_TIMES) < MIN_BAT_VOL)
-    SYS_Sleep();
+	if(Get_Bat_Voltage(DEFAULT_VOL_CHANGE_TIMES) < MIN_BAT_VOL)
+    	SYS_Sleep();
 
-  if(!Pre_Access_Network()) SYS_Sleep();
+  	if(!Pre_Access_Network()) SYS_Sleep();
 
-  if(!Connect_to_The_Server()) SYS_Sleep();
+  	if(!Connect_to_The_Server()) SYS_Sleep();
 
-  Send_Data_To_Server() == true ? SYS_Sleep() : nvic_sys_reset();
+  	Send_Data_To_Server() == true ? SYS_Sleep() : nvic_sys_reset();
 }
 
 /*
@@ -70,19 +70,19 @@ void loop()
  */
 void SYS_Sleep(void)
 {
-  Timer2.detachCompare1Interrupt();
-  LED1_OFF;
-  LED2_OFF;
-  LED3_OFF;
-  LED4_OFF;
-  GPRS_PWR_OFF;
-  DC12V_PWR_OFF;
-  USB_PORT_DIS;
-  GPS_ANT_PWR_OFF;
+	Timer2.detachCompare1Interrupt();
+	LED1_OFF;
+	LED2_OFF;
+	LED3_OFF;
+	LED4_OFF;
+	GPRS_PWR_OFF;
+	DC12V_PWR_OFF;
+	USB_PORT_DIS;
+	GPS_ANT_PWR_OFF;
 
-  PWR_WakeUpPinCmd(ENABLE);//使能唤醒引脚，默认PA0
-  PWR_ClearFlag(PWR_FLAG_WU);
-  PWR_EnterSTANDBYMode();//进入待机
+	PWR_WakeUpPinCmd(ENABLE); //使能唤醒引脚，默认PA0
+	PWR_ClearFlag(PWR_FLAG_WU);
+	PWR_EnterSTANDBYMode(); //进入待机
 }
 
 /*
@@ -92,41 +92,48 @@ void SYS_Sleep(void)
  */
 void Key_Clear_Device_Parameter(void)
 {
-  if (digitalRead(KEY2_INPUT) == LOW){
-    GSM_STATUS_LED_ON;
-    Delay_ms(1000);
-    if (digitalRead(KEY2_INPUT) == LOW){
-      Clear_HostID = true;
-      Serial.println("Clear System parameter OK...");
-      GSM_STATUS_LED_OFF; 
-    } 
-  }
+	if (digitalRead(KEY2_INPUT) == LOW)
+	{
+		GSM_STATUS_LED_ON;
+		Delay_ms(1000);
+		if (digitalRead(KEY2_INPUT) == LOW)
+		{
+			Clear_HostID = true;
+			Serial.println("Clear System parameter OK...");
+			GSM_STATUS_LED_OFF;
+		}
+	}
 }
 
+/*
+ *brief   : 按键1清除储存的EP数据
+ *para    : 无
+ *return  : 无
+ */
 void Key_Clear_Muti_Sensor_Data(void)
-{ 
-  if (digitalRead(KEY1_INPUT) == LOW){
-    GSM_STATUS_LED_ON;
-    Delay_ms(1000);
-    if (digitalRead(KEY1_INPUT) == LOW){
+{
+	if (digitalRead(KEY1_INPUT) == LOW)
+	{
+		GSM_STATUS_LED_ON;
+		Delay_ms(1000);
+		if (digitalRead(KEY1_INPUT) == LOW)
+		{
+			#if DEVICE_V2_5
+				EP_Write_Enable();
+			#endif
 
-      #if DEVICE_V2_5
-        EP_Write_Enable();
-      #endif
+			EpromDb.open(EEPROM_BASE_ADDR);
+			EpromDb.clear();
 
-      EpromDb.open(EEPROM_BASE_ADDR);
-      EpromDb.clear(); 
-      
-      #if DEVICE_V2_5
-        EP_Write_Disable();
-      #endif
+			#if DEVICE_V2_5
+				EP_Write_Disable();
+			#endif
 
-      Serial.println("Clear Sensor Data OK...");
-      GSM_STATUS_LED_OFF; 
-    }
-  }
-}  
-
+			Serial.println("Clear Sensor Data OK...");
+			GSM_STATUS_LED_OFF;
+		}
+	}
+}
 
 /*
  *brief   : 定时器2中断函数
@@ -135,14 +142,15 @@ void Key_Clear_Muti_Sensor_Data(void)
 */
 void Time2_Handler(void)
 {
-    Toggle ^= 1;
-    digitalWrite(LED1, Toggle); //状态灯闪烁
+	Toggle ^= 1;
+	digitalWrite(LED1, Toggle); //状态灯闪烁
 
-    Run_Time_Out_Sec++;
-    //如果运行超时，复位
-    if(Run_Time_Out_Sec >= 300){
-        Run_Time_Out_Sec = 0;
-        noInterrupts();
-        nvic_sys_reset();
-    }
+	Run_Time_Out_Sec++;
+	//如果运行超时，复位
+	if (Run_Time_Out_Sec >= 300)
+	{
+		Run_Time_Out_Sec = 0;
+		noInterrupts();
+		nvic_sys_reset();
+	}
 }

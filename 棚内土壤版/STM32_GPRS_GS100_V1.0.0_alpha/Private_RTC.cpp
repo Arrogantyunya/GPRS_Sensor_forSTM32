@@ -6,6 +6,11 @@
 UTCTimeStruct RtcTime;
 RTClock InRtc (RTCSEL_LSE);  // initialise RTC
 
+/*
+ *brief   : 初始化并创建RTC闹钟
+ *para    : 无
+ *return  : 无
+*/
 void Init_RTC(unsigned int init_time)
 {
     time_t Alarm_Time = 0;
@@ -16,7 +21,7 @@ void Init_RTC(unsigned int init_time)
 }
 
 /*
- *brief   : RTC闹钟中断函数，进入后接触RTC闹钟中断，系统重启
+ *brief   : RTC闹钟中断函数，进入后解除RTC闹钟中断，系统重启
  *para    : 无
  *return  : 无
 */
