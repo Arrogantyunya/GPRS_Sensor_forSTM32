@@ -2,9 +2,8 @@
 #include <Arduino.h>
 #include "data_transmit.h"
 
-
 UTCTimeStruct RtcTime;
-RTClock InRtc (RTCSEL_LSE);  // initialise RTC
+RTClock InRtc(RTCSEL_LSE); // initialise RTC
 
 /*
  *brief   : 初始化并创建RTC闹钟
@@ -13,11 +12,11 @@ RTClock InRtc (RTCSEL_LSE);  // initialise RTC
 */
 void Init_RTC(unsigned int init_time)
 {
-    time_t Alarm_Time = 0;
-    Alarm_Time = InRtc.getTime();
-    Sys_Run_Para.g_Transmit_Cycle = init_time;
-    Alarm_Time += Sys_Run_Para.g_Transmit_Cycle;
-    InRtc.createAlarm(RTC_Interrupt, Alarm_Time);
+	time_t Alarm_Time = 0;
+	Alarm_Time = InRtc.getTime();
+	Sys_Run_Para.g_Transmit_Cycle = init_time;
+	Alarm_Time += Sys_Run_Para.g_Transmit_Cycle;
+	InRtc.createAlarm(RTC_Interrupt, Alarm_Time);
 }
 
 /*
@@ -27,7 +26,7 @@ void Init_RTC(unsigned int init_time)
 */
 void RTC_Interrupt(void)
 {
-  rtc_detach_interrupt(RTC_ALARM_SPECIFIC_INTERRUPT);
-  Serial.println("RTC alarm interrupt");
-  nvic_sys_reset();
+	rtc_detach_interrupt(RTC_ALARM_SPECIFIC_INTERRUPT);
+	Serial.println("RTC alarm interrupt");
+	nvic_sys_reset();
 }
