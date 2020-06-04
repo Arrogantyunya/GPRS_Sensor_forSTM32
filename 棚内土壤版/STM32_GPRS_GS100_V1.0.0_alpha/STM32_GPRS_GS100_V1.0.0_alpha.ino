@@ -38,8 +38,8 @@ void setup()
 
 	System_ID_Self_Check(SysHostID); //系统ID自检
 
-	Key_Clear_Device_Parameter(); //按键清除系统参数，慎用
-	Key_Clear_Muti_Sensor_Data(); //按键清除XXX
+	Key_Clear_Device_Parameter(); //按键2清除系统参数，慎用
+	Key_Clear_Muti_Sensor_Data(); //按键1清除存储在EP中的传感器数据
 
 	//初始化定时器2
 	Timer2.setChannel1Mode(TIMER_OUTPUTCOMPARE);
@@ -70,19 +70,30 @@ void loop()
  */
 void SYS_Sleep(void)
 {
-	Timer2.detachCompare1Interrupt();
-	LED1_OFF;
-	LED2_OFF;
-	LED3_OFF;
-	LED4_OFF;
-	GPRS_PWR_OFF;
-	DC12V_PWR_OFF;
-	USB_PORT_DIS;
-	GPS_ANT_PWR_OFF;
+	#if GS100_DEVICE_V1_0
+		Timer2.detachCompare1Interrupt();
+		LED1_OFF;
+		LED2_OFF;
+		GPRS_PWR_OFF;
 
-	PWR_WakeUpPinCmd(ENABLE); //使能唤醒引脚，默认PA0
-	PWR_ClearFlag(PWR_FLAG_WU);
-	PWR_EnterSTANDBYMode(); //进入待机
+		PWR_WakeUpPinCmd(ENABLE); //使能唤醒引脚，默认PA0
+		PWR_ClearFlag(PWR_FLAG_WU);
+		PWR_EnterSTANDBYMode(); //进入待机
+	#else
+		Timer2.detachCompare1Interrupt();
+		LED1_OFF;
+		LED2_OFF;
+		LED3_OFF;
+		LED4_OFF;
+		GPRS_PWR_OFF;
+		DC12V_PWR_OFF;
+		USB_PORT_DIS;
+		GPS_ANT_PWR_OFF;
+
+		PWR_WakeUpPinCmd(ENABLE); //使能唤醒引脚，默认PA0
+		PWR_ClearFlag(PWR_FLAG_WU);
+		PWR_EnterSTANDBYMode(); //进入待机
+	#endif
 }
 
 /*
@@ -106,7 +117,7 @@ void Key_Clear_Device_Parameter(void)
 }
 
 /*
- *brief   : 按键1清除储存的EP数据
+ *brief   : 按键1清除储存在EP中的传感器数据
  *para    : 无
  *return  : 无
  */

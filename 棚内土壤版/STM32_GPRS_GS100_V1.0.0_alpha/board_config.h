@@ -4,11 +4,16 @@
 //Hardware vertion
 #define DEVICE_V2_2   0
 #define DEVICE_V2_4   0
-#define DEVICE_V2_5   1
+#define DEVICE_V2_5   0
 
-#define TYPE06    1 //棚内+大气
+#define GS100_DEVICE_V1_0   1
+
+#define TYPE06    0 //棚内+大气
 #define TYPE07    0 //中科院带三路ADC
 #define TYPE08    0 //第三代气象站，新增光学雨量计
+#define TYPE09    0 //
+
+#define TYPEA0    1 //GS100的gprs版本A0
 
 #define PRINT_DEBUG   0
 
@@ -24,6 +29,10 @@
     #define GSM_Serial                  Serial2
     #define ModBus_Serial               Serial3
     #define LoRa_Serial                 Serial1
+#elif GS100_DEVICE_V1_0
+    #define GSM_Serial                  Serial2
+    #define ModBus_Serial               Serial3
+    // #define LoRa_Serial                 Serial2//取消了LoRa的接口
 #endif
 
 //Button config
@@ -33,6 +42,9 @@
 #elif (DEVICE_V2_4 || DEVICE_V2_5)
     #define KEY1_INPUT                  PA4
     #define KEY2_INPUT                  PA5
+#elif GS100_DEVICE_V1_0
+    #define KEY1_INPUT                  PA6
+    #define KEY2_INPUT                  PA7
 #endif
 
 //LED config
@@ -46,10 +58,13 @@
     #define LED2                        PC7
     #define LED3                        PB14
     #define LED4                        PB15
+#elif GS100_DEVICE_V1_0
+    #define LED1                        PB9//GREEN
+    #define LED2                        PB8//RED
 #endif
 
 //External ADC config
-#define HOST_VOL_ADC_INPUT_PIN      PB1
+#define HOST_VOL_ADC_INPUT_PIN          PC5 //电压读取引脚
 
 //外设电源、信号控制IO,输出控制
 #if DEVICE_V2_5
@@ -66,11 +81,20 @@
     #define LORA_M0_PIN                 PC10
     #define LORA_M1_PIN                 PB5
     #define LORA_AUX_PIN                PC13
+#elif GS100_DEVICE_V1_0
+    // #define DC12V_PWR_PIN               PB12
+    #define RS485_BUS_PWR_PIN           PA8 //485电源使能引脚 
+    // #define LORA_PWR_PIN                PB8
+    // #define LORA_M0_PIN                 PC10
+    // #define LORA_M1_PIN                 PB5
+    // #define LORA_AUX_PIN                PC13
 #endif
 
 //EEPROM W/R enable pin.
 #if DEVICE_V2_5
     #define WP_PIN                      PB5
+#elif GS100_DEVICE_V1_0
+    #define WP_PIN                      PB5 
 #endif
 
 //USB使能脚
@@ -78,6 +102,8 @@
     #define USB_EN_PIN                  PB15
 #elif (DEVICE_V2_2 || DEVICE_V2_4)
     #define USB_EN_PIN                  PB9
+#elif GS100_DEVICE_V1_0 
+
 #endif
 
 //GPRS相关引脚
@@ -92,6 +118,11 @@
     #define GPRS_RST_PIN                PB4
     #define GPRS_PWRKEY_PIN             PA15
     #define GPRS_PWR_CON_PIN            PD2  
+#elif GS100_DEVICE_V1_0
+    // #define GPS_ANT_PWR_CON_PIN         PC12    //没用到
+    // #define GPRS_RST_PIN                PB4     //没用到
+    #define GPRS_PWRKEY_PIN             PA4     //
+    #define GPRS_PWR_CON_PIN            PA5     //GPRS电源 
 #endif
 
 #if DEVICE_V2_5
@@ -102,6 +133,8 @@
     #define ANALOGY_PIN_1               PC5
     #define ANALOGY_PIN_2               PC4
     #define ANALOGY_PIN_3               PA7
+#elif GS100_DEVICE_V1_0  
+    #define ANALOGY_PIN_1               PB1
 #endif
 
 

@@ -1332,7 +1332,7 @@ bool Connect_to_The_Server(void)
 		Server_STATUS_LED_ON;
 
 		Read_EEPROM_Server_Param(SysHostID, &Sys_Run_Para); //读取本机系统相关参数
-		if (!Is_Apply_For_ID())
+		if (!Is_Apply_For_ID())//这里是请求入网
 			return false;
 
 		//准备向服务器发送握手帧

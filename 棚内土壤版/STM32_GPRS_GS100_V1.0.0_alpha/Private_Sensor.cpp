@@ -78,6 +78,16 @@ void Read_Cond_and_Salt(unsigned int *cond, unsigned int *sat, unsigned char add
 }
 
 /*
+ *brief   : ModBus协议采集土壤PH
+ *para    : 无符号整型的PH、ModBus土壤PH传感器地址
+ *return  : 无
+ */
+void Read_Soil_PH_for_Modbus(unsigned int *ph, unsigned char address)
+{
+
+}
+
+/*
  *brief   : ModBus协议采集C02和TVOC浓度
  *para    : 无符号整型的CO2参数、无符号整型的TVOC参数、ModBus百叶箱地址
  *return  : 无
@@ -220,7 +230,7 @@ void Read_Soil_Temp_and_Humi(float *hum, unsigned int *tep, unsigned char *tep_f
  *para    : 浮点型的湿度参数、无符号整型的温度参数、ModBus百叶箱地址
  *return  : 无
  */
-void Read_Temp_and_Humi(float *hum, unsigned int *tep, unsigned char *tep_flag, unsigned char address)
+void Read_Temp_and_Humi_for_Modbus(float *hum, unsigned int *tep, unsigned char *tep_flag, unsigned char address)
 {
   unsigned char Air_Temp_Humi_Cmd[8] = {0x01, 0x03, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00};
   unsigned char Receive_Data[9] = {0};
@@ -289,11 +299,21 @@ void Read_Temp_and_Humi(float *hum, unsigned int *tep, unsigned char *tep_flag, 
 }
 
 /*
+ *brief   : I2C协议采集温度和湿度
+ *para    : 浮点型的湿度参数、无符号整型的温度参数、ModBus百叶箱地址
+ *return  : 无
+ */
+void Read_Temp_and_Humi_for_I2C(float *hum, unsigned int *tep, unsigned char *tep_flag)
+{
+
+}
+
+/*
  *brief   : ModBus协议采集光照强度
  *para    : 无符号长整型的光照强度参数、ModBus百叶箱地址
  *return  : 无
  */
-void Read_Lux(unsigned long int *lux_value, unsigned char address)
+void Read_Lux_for_Modbus(unsigned long int *lux_value, unsigned char address)
 {
   unsigned char Lux_Cmd[8] = {0x01, 0x03, 0x00, 0x07, 0x00, 0x02, 0x00, 0x00};
   unsigned char Receive_Data[9] = {0};
@@ -346,7 +366,7 @@ void Read_Lux(unsigned long int *lux_value, unsigned char address)
           Lux_temp = 0xFFFFFFFF;
         }
 
-        if (Collect_Flag = true)
+        if (Collect_Flag == true)
           break;
         else{
           memset(Receive_Data, 0x00, sizeof(Receive_Data));
@@ -359,6 +379,16 @@ void Read_Lux(unsigned long int *lux_value, unsigned char address)
 
   *lux_value = Lux_temp;
 } 
+
+/*
+ *brief   : I2C协议采集光照强度
+ *para    : 无符号长整型的光照强度参数、ModBus百叶箱地址
+ *return  : 无
+ */
+void Read_Lux_for_I2C(unsigned long int *lux_value)
+{
+
+}
 
 /*
  *brief   : ModBus协议采集大气气压
@@ -528,7 +558,7 @@ void Read_Photics_Rainfall(unsigned char *rainfall_buffer, unsigned char address
  *para    : 无符号整型的紫外线强度参数、ModBus百叶箱地址
  *return  : 无
  */
-void Read_UV(unsigned int *uv, unsigned char address)
+void Read_UV_for_Modbus(unsigned int *uv, unsigned char address)
 {
   unsigned char UV_Cmd[8] = {0x01, 0x03, 0x00, 0x0D, 0x00, 0x01, 0x00, 0x00};
   unsigned char Receive_Data[7] = {0};
@@ -593,6 +623,16 @@ void Read_UV(unsigned int *uv, unsigned char address)
 
   *uv = UV_temp;
 } 
+
+/*
+ *brief   : I2C协议采集紫外线强度
+ *para    : 无符号整型的紫外线强度参数、ModBus百叶箱地址
+ *return  : 无
+ */
+void Read_UV_for_I2C(unsigned int *uv)
+{
+
+}
 
 /*
  *brief   : ModBus协议采集风速传感器
@@ -719,32 +759,40 @@ unsigned int Get_Analogy1_Value(void)
  *para    : 无
  *return  : 返回无符号int的电压模拟值
  */
-unsigned int Get_Analogy2_Value(void)
-{
-  float analogy_temp = 0.0;
-  unsigned int Analogy_Value = 0;
+#if GS100_DEVICE_V1_0
+#else
+  unsigned int Get_Analogy2_Value(void)
+  {
+    float analogy_temp = 0.0;
+    unsigned int Analogy_Value = 0;
 
-  analogy_temp = analogRead(ANALOGY_PIN_2);
-  Analogy_Value = analogy_temp * 11 * 0.8056; //如果测电流值，需要取消乘以11倍.
+    analogy_temp = analogRead(ANALOGY_PIN_2);
+    Analogy_Value = analogy_temp * 11 * 0.8056; //如果测电流值，需要取消乘以11倍.
 
-  return Analogy_Value;
-}
+    return Analogy_Value;
+  }
+#endif
+
 
 /*
  *brief   : 扩展的模拟输入3，返回一个无符号int型值
  *para    : 无
  *return  : 返回无符号int的电压模拟值
  */
-unsigned int Get_Analogy3_Value(void)
-{
-  float analogy_temp = 0.0;
-  unsigned int Analogy_Value = 0;
+#if GS100_DEVICE_V1_0
+#else
+  unsigned int Get_Analogy3_Value(void)
+  {
+    float analogy_temp = 0.0;
+    unsigned int Analogy_Value = 0;
 
-  analogy_temp = analogRead(ANALOGY_PIN_3);
-  Analogy_Value = analogy_temp * 11 * 0.8056; //如果测电流值，需要取消乘以11倍.
+    analogy_temp = analogRead(ANALOGY_PIN_3);
+    Analogy_Value = analogy_temp * 11 * 0.8056; //如果测电流值，需要取消乘以11倍.
 
-  return Analogy_Value;
-}
+    return Analogy_Value;
+  }
+#endif
+
 
 /*
  *brief   : 读取各个传感器的值，得到采集数据RTC，并打印获取的传感器值到串口
@@ -756,143 +804,168 @@ void Data_Acquisition(void)
   RS485_BUS_PWR_ON;
   delay(5000);
 
-  #if TYPE06
-  //读取土壤温度和湿度
-  Read_Soil_Temp_and_Humi(&Muti_Sensor_Data.Soil_Humi, &Muti_Sensor_Data.Soil_Temp, &Muti_Sensor_Data.Soil_Temp_Flag, SOIL_SENSOR_ADDR);
-  delay(g_Wait_Collect_Time);
-  //读取土壤电导率和盐分
-  Read_Cond_and_Salt(&Muti_Sensor_Data.Soil_Cond, &Muti_Sensor_Data.Soil_Salt, SOIL_SENSOR_ADDR);
-  delay(g_Wait_Collect_Time);
-  #endif
+  #if GS100_DEVICE_V1_0
+    //读取棚内温度和湿度
+    Read_Temp_and_Humi_for_I2C(&Muti_Sensor_Data.GreenHouse_Humi, &Muti_Sensor_Data.GreenHouse_Temp, &Muti_Sensor_Data.GreenHouse_Temp_Flag);
+    delay(g_Wait_Collect_Time);
 
-  //读取大气温度和湿度
-  Read_Temp_and_Humi(&Muti_Sensor_Data.Air_Humi, &Muti_Sensor_Data.Air_Temp, &Muti_Sensor_Data.Air_Temp_Flag, AIR_SENSOR_ADDR);
-  delay(g_Wait_Collect_Time);
-  //读取大气光照
-  Read_Lux(&Muti_Sensor_Data.Air_Lux, AIR_SENSOR_ADDR);
-  delay(g_Wait_Collect_Time);
-  //读取大气气压
-  Read_Atmos(&Muti_Sensor_Data.Air_Atmos, AIR_SENSOR_ADDR);
-  delay(g_Wait_Collect_Time);
-  //读取大气紫外线强度
-  Read_UV(&Muti_Sensor_Data.Air_UV, AIR_SENSOR_ADDR);
-  delay(g_Wait_Collect_Time);
-  //读取风向
-  Read_Wind_Direction(&Muti_Sensor_Data.Wind_DirCode, WIND_DIRECTION_SENSOR_ADDR);
-  delay(g_Wait_Collect_Time);
-  //读取风速
-  Read_Wind_Speed(&Muti_Sensor_Data.Air_Wind_Speed, WIND_RATE_SENSOR_ADDR);
-  delay(g_Wait_Collect_Time);
+    //读取棚内光照强度
+    Read_Lux_for_I2C(&Muti_Sensor_Data.GreenHouse_Lux);
+    delay(g_Wait_Collect_Time);
 
-  //读取雨雪传感器开关量
-  #if (TYPE06 || TYPE07)
-  Read_Rainfall(&Muti_Sensor_Data.Rainfall, RAINFALL_SENSOR_ADDR);
-  delay(g_Wait_Collect_Time);
-  #elif TYPE08
-  memset(Muti_Sensor_Data.Rainfall_Buffer, 0xFF, sizeof(Muti_Sensor_Data.Rainfall_Buffer));
-  Read_Photics_Rainfall(Muti_Sensor_Data.Rainfall_Buffer, RAINFALL_SENSOR_ADDR);
-  delay(g_Wait_Collect_Time);
-  #endif
+    //读取棚内紫外线强度
+    Read_UV_for_I2C(&Muti_Sensor_Data.GreenHouse_UV);
+    delay(g_Wait_Collect_Time);
 
-  #if TYPE06
-  //读取棚内温度和湿度
-  Read_Temp_and_Humi(&Muti_Sensor_Data.GreenHouse_Humi, &Muti_Sensor_Data.GreenHouse_Temp, &Muti_Sensor_Data.GreenHouse_Temp_Flag, GREENHOUSE_SENSOR_ADDR);
-  delay(g_Wait_Collect_Time);
-  //读取棚内光照强度
-  Read_Lux(&Muti_Sensor_Data.GreenHouse_Lux, GREENHOUSE_SENSOR_ADDR);
-  delay(g_Wait_Collect_Time);
-  //读取棚内大气气压
-  Read_Atmos(&Muti_Sensor_Data.GreenHouse_Atmos, GREENHOUSE_SENSOR_ADDR);
-  delay(g_Wait_Collect_Time);
-  //读取棚内紫外线强度
-  Read_UV(&Muti_Sensor_Data.GreenHouse_UV, GREENHOUSE_SENSOR_ADDR);
-  delay(g_Wait_Collect_Time);
-  //读取棚内CO2和TVOC浓度
-  Read_CO2_and_TVOC(&Muti_Sensor_Data.GreenHouse_CO2, &Muti_Sensor_Data.GreenHouse_TVOC, GREENHOUSE_SENSOR_ADDR);
-  delay(g_Wait_Collect_Time);
-  #endif
+    //读取土壤温度和湿度
+    Read_Soil_Temp_and_Humi(&Muti_Sensor_Data.Soil_Humi, &Muti_Sensor_Data.Soil_Temp, &Muti_Sensor_Data.Soil_Temp_Flag, SOIL_SENSOR_ADDR);
+    delay(g_Wait_Collect_Time);
 
-  //读取大气二氧化碳和TVOC浓度 (因为该传感器需要预热，所以排在后面采集)
-  Read_CO2_and_TVOC(&Muti_Sensor_Data.Air_CO2, &Muti_Sensor_Data.Air_TVOC, AIR_SENSOR_ADDR);
-  delay(g_Wait_Collect_Time);
+    //读取土壤电导率和盐分
+    Read_Cond_and_Salt(&Muti_Sensor_Data.Soil_Cond, &Muti_Sensor_Data.Soil_Salt, SOIL_SENSOR_ADDR);
+    delay(g_Wait_Collect_Time);
 
-  #if TYPE07
-  //读取水位值
-  Muti_Sensor_Data.Water_Level = Get_Analogy1_Value();
-  delay(g_Wait_Collect_Time);
+    //读取土壤PH
+    Read_Soil_PH_for_Modbus(&Muti_Sensor_Data.Soil_PH, SOIL_SENSOR_FOR_PH_ADDR);
+  #else
+    #if TYPE06
+    //读取土壤温度和湿度
+    Read_Soil_Temp_and_Humi(&Muti_Sensor_Data.Soil_Humi, &Muti_Sensor_Data.Soil_Temp, &Muti_Sensor_Data.Soil_Temp_Flag, SOIL_SENSOR_ADDR);
+    delay(g_Wait_Collect_Time);
+    //读取土壤电导率和盐分
+    Read_Cond_and_Salt(&Muti_Sensor_Data.Soil_Cond, &Muti_Sensor_Data.Soil_Salt, SOIL_SENSOR_ADDR);
+    delay(g_Wait_Collect_Time);
+    #endif
 
-  //读取扩展ADC1的值
-  Muti_Sensor_Data.ADC_Value1 = Get_Analogy2_Value();
-  delay(g_Wait_Collect_Time);
+    //读取大气温度和湿度
+    Read_Temp_and_Humi_for_Modbus(&Muti_Sensor_Data.Air_Humi, &Muti_Sensor_Data.Air_Temp, &Muti_Sensor_Data.Air_Temp_Flag, AIR_SENSOR_ADDR);
+    delay(g_Wait_Collect_Time);
+    //读取大气光照
+    Read_Lux_for_Modbus(&Muti_Sensor_Data.Air_Lux, AIR_SENSOR_ADDR);
+    delay(g_Wait_Collect_Time);
+    //读取大气气压
+    Read_Atmos(&Muti_Sensor_Data.Air_Atmos, AIR_SENSOR_ADDR);
+    delay(g_Wait_Collect_Time);
+    //读取大气紫外线强度
+    Read_UV_for_Modbus(&Muti_Sensor_Data.Air_UV, AIR_SENSOR_ADDR);
+    delay(g_Wait_Collect_Time);
+    //读取风向
+    Read_Wind_Direction(&Muti_Sensor_Data.Wind_DirCode, WIND_DIRECTION_SENSOR_ADDR);
+    delay(g_Wait_Collect_Time);
+    //读取风速
+    Read_Wind_Speed(&Muti_Sensor_Data.Air_Wind_Speed, WIND_RATE_SENSOR_ADDR);
+    delay(g_Wait_Collect_Time);
 
-  //读取扩展ADC2的值
-  Muti_Sensor_Data.ADC_Value2 = Get_Analogy3_Value();
-  delay(g_Wait_Collect_Time);
-  #endif
+    //读取雨雪传感器开关量
+    #if (TYPE06 || TYPE07)
+    Read_Rainfall(&Muti_Sensor_Data.Rainfall, RAINFALL_SENSOR_ADDR);
+    delay(g_Wait_Collect_Time);
+    #elif TYPE08
+    memset(Muti_Sensor_Data.Rainfall_Buffer, 0xFF, sizeof(Muti_Sensor_Data.Rainfall_Buffer));
+    Read_Photics_Rainfall(Muti_Sensor_Data.Rainfall_Buffer, RAINFALL_SENSOR_ADDR);
+    delay(g_Wait_Collect_Time);
+    #endif
 
-  RS485_BUS_PWR_OFF;
+    #if TYPE06
+    //读取棚内温度和湿度
+    Read_Temp_and_Humi_for_Modbus(&Muti_Sensor_Data.GreenHouse_Humi, &Muti_Sensor_Data.GreenHouse_Temp, &Muti_Sensor_Data.GreenHouse_Temp_Flag, GREENHOUSE_SENSOR_ADDR);
+    delay(g_Wait_Collect_Time);
+    //读取棚内光照强度
+    Read_Lux_for_Modbus(&Muti_Sensor_Data.GreenHouse_Lux, GREENHOUSE_SENSOR_ADDR);
+    delay(g_Wait_Collect_Time);
+    //读取棚内大气气压
+    Read_Atmos(&Muti_Sensor_Data.GreenHouse_Atmos, GREENHOUSE_SENSOR_ADDR);
+    delay(g_Wait_Collect_Time);
+    //读取棚内紫外线强度
+    Read_UV_for_Modbus(&Muti_Sensor_Data.GreenHouse_UV, GREENHOUSE_SENSOR_ADDR);
+    delay(g_Wait_Collect_Time);
+    //读取棚内CO2和TVOC浓度
+    Read_CO2_and_TVOC(&Muti_Sensor_Data.GreenHouse_CO2, &Muti_Sensor_Data.GreenHouse_TVOC, GREENHOUSE_SENSOR_ADDR);
+    delay(g_Wait_Collect_Time);
+    #endif
 
-  //得到当前采集时间
-  UTCTime CurrentSec = 0;
-  CurrentSec = InRtc.getTime();
-  osal_ConvertUTCTime(&RtcTime, CurrentSec);
+    //读取大气二氧化碳和TVOC浓度 (因为该传感器需要预热，所以排在后面采集)
+    Read_CO2_and_TVOC(&Muti_Sensor_Data.Air_CO2, &Muti_Sensor_Data.Air_TVOC, AIR_SENSOR_ADDR);
+    delay(g_Wait_Collect_Time);
 
-  Muti_Sensor_Data.curTime.tm_year = RtcTime.year;
-  Muti_Sensor_Data.curTime.tm_mon  = RtcTime.month;
-  Muti_Sensor_Data.curTime.tm_mday = RtcTime.day;
-  Muti_Sensor_Data.curTime.tm_hour = RtcTime.hour;
-  Muti_Sensor_Data.curTime.tm_min  = RtcTime.minutes;
-  Muti_Sensor_Data.curTime.tm_sec  = RtcTime.seconds; 
+    #if TYPE07
+    //读取水位值
+    Muti_Sensor_Data.Water_Level = Get_Analogy1_Value();
+    delay(g_Wait_Collect_Time);
 
-  //打印采集的数据到串口
-  Serial.print("Air Temp: "); 
-  Muti_Sensor_Data.Air_Temp_Flag == 1 ? Serial.print(((float)(65536 - Muti_Sensor_Data.Air_Temp)) / 10 * -1) : Serial.print(Muti_Sensor_Data.Air_Temp / 10);
-  Serial.println("℃");
-  Serial.print("Air Humi: "); Serial.print(Muti_Sensor_Data.Air_Humi); Serial.println("%RH");
-  Serial.print("Air Atmos: "); Serial.print(Muti_Sensor_Data.Air_Atmos); Serial.println("Pa");
-  Serial.print("Air Lux: "); Serial.print(Muti_Sensor_Data.Air_Lux); Serial.println("Lux");
-  Serial.print("Air uv: "); Serial.println(Muti_Sensor_Data.Air_UV); 
-  Serial.print("Air CO2: "); Serial.print(Muti_Sensor_Data.Air_CO2); Serial.println("ppm");
-  Serial.print("Air TVOC: "); Serial.print(Muti_Sensor_Data.Air_TVOC); Serial.println("ppm");
-  Serial.print("Wind Speed: "); Serial.print(Muti_Sensor_Data.Air_Wind_Speed); Serial.println("m/s");
-  Serial.print("Wind Direction:"); Serial.println(Muti_Sensor_Data.Wind_DirCode);
+    //读取扩展ADC1的值
+    Muti_Sensor_Data.ADC_Value1 = Get_Analogy2_Value();
+    delay(g_Wait_Collect_Time);
 
-  #if TYPE06
-  Serial.print("Soil Temp: ");
-  Muti_Sensor_Data.Soil_Temp_Flag == 1 ? Serial.print(((float)(65536 - Muti_Sensor_Data.Soil_Temp)) / 10 * -1) : Serial.print(Muti_Sensor_Data.Soil_Temp / 10);
-  Serial.println("℃");
-  Serial.print("Soil Humi: "); Serial.print(Muti_Sensor_Data.Soil_Humi); Serial.println("%RH");
-  Serial.print("Soil Cond: "); Serial.print(Muti_Sensor_Data.Soil_Cond); Serial.println("us/cm");
-  Serial.print("Soil Salt；"); Serial.print(Muti_Sensor_Data.Soil_Salt); Serial.println("mg/L");
-  Serial.print("GreenHouse Temp: "); 
-  Muti_Sensor_Data.Air_Temp_Flag == 1 ? Serial.print(((float)(65536 - Muti_Sensor_Data.GreenHouse_Temp)) / 10 * -1) : Serial.print(Muti_Sensor_Data.GreenHouse_Temp / 10);
-  Serial.println("℃");
-  Serial.print("GreenHouse Humi: "); Serial.print(Muti_Sensor_Data.GreenHouse_Humi); Serial.println("%RH");
-  Serial.print("GreenHouse Atmos: "); Serial.print(Muti_Sensor_Data.GreenHouse_Atmos); Serial.println("Pa");
-  Serial.print("GreenHouse Lux: "); Serial.print(Muti_Sensor_Data.GreenHouse_Lux); Serial.println("Lux");
-  Serial.print("GreenHouse uv: "); Serial.println(Muti_Sensor_Data.GreenHouse_UV); 
-  Serial.print("GreenHouse CO2: "); Serial.print(Muti_Sensor_Data.GreenHouse_CO2); Serial.println("ppm");
-  Serial.print("GreenHouse TVOC: "); Serial.print(Muti_Sensor_Data.GreenHouse_TVOC); Serial.println("ppm");
-  #endif
+    //读取扩展ADC2的值
+    Muti_Sensor_Data.ADC_Value2 = Get_Analogy3_Value();
+    delay(g_Wait_Collect_Time);
+    #endif
 
-  #if (TYPE06 || TYPE07)
-  if (Muti_Sensor_Data.Rainfall == 0)
-    Serial.println("Sunny day");
-  else if (Muti_Sensor_Data.Rainfall == 1)
-    Serial.println("Rain day");
-  else
-    Serial.println("Rain sensor abnormal");
+    RS485_BUS_PWR_OFF;
 
-  #elif TYPE08
-  unsigned int Rainfall_Temp = 0;
-  Rainfall_Temp = Muti_Sensor_Data.Rainfall_Buffer[0] << 8 | Muti_Sensor_Data.Rainfall_Buffer[1];
-  Serial.print("Real time rainfall: "); Serial.print(Rainfall_Temp); Serial.println("mm");
-  Rainfall_Temp = Muti_Sensor_Data.Rainfall_Buffer[2] << 8 | Muti_Sensor_Data.Rainfall_Buffer[3];
-  Serial.print("hour rainfall: "); Serial.print(Rainfall_Temp); Serial.println("mm");
-  Rainfall_Temp = Muti_Sensor_Data.Rainfall_Buffer[4] << 8 | Muti_Sensor_Data.Rainfall_Buffer[5];
-  Serial.print("month time rainfall: "); Serial.print(Rainfall_Temp); Serial.println("mm");
-  Rainfall_Temp = Muti_Sensor_Data.Rainfall_Buffer[6] << 8 | Muti_Sensor_Data.Rainfall_Buffer[7];
-  Serial.print("year time rainfall: "); Serial.print(Rainfall_Temp); Serial.println("mm");
+    //得到当前采集时间
+    UTCTime CurrentSec = 0;
+    CurrentSec = InRtc.getTime();
+    osal_ConvertUTCTime(&RtcTime, CurrentSec);
+
+    Muti_Sensor_Data.curTime.tm_year = RtcTime.year;
+    Muti_Sensor_Data.curTime.tm_mon  = RtcTime.month;
+    Muti_Sensor_Data.curTime.tm_mday = RtcTime.day;
+    Muti_Sensor_Data.curTime.tm_hour = RtcTime.hour;
+    Muti_Sensor_Data.curTime.tm_min  = RtcTime.minutes;
+    Muti_Sensor_Data.curTime.tm_sec  = RtcTime.seconds; 
+
+    //打印采集的数据到串口
+    Serial.print("Air Temp: "); 
+    Muti_Sensor_Data.Air_Temp_Flag == 1 ? Serial.print(((float)(65536 - Muti_Sensor_Data.Air_Temp)) / 10 * -1) : Serial.print(Muti_Sensor_Data.Air_Temp / 10);
+    Serial.println("℃");
+    Serial.print("Air Humi: "); Serial.print(Muti_Sensor_Data.Air_Humi); Serial.println("%RH");
+    Serial.print("Air Atmos: "); Serial.print(Muti_Sensor_Data.Air_Atmos); Serial.println("Pa");
+    Serial.print("Air Lux: "); Serial.print(Muti_Sensor_Data.Air_Lux); Serial.println("Lux");
+    Serial.print("Air uv: "); Serial.println(Muti_Sensor_Data.Air_UV); 
+    Serial.print("Air CO2: "); Serial.print(Muti_Sensor_Data.Air_CO2); Serial.println("ppm");
+    Serial.print("Air TVOC: "); Serial.print(Muti_Sensor_Data.Air_TVOC); Serial.println("ppm");
+    Serial.print("Wind Speed: "); Serial.print(Muti_Sensor_Data.Air_Wind_Speed); Serial.println("m/s");
+    Serial.print("Wind Direction:"); Serial.println(Muti_Sensor_Data.Wind_DirCode);
+
+    #if TYPE06
+    Serial.print("Soil Temp: ");
+    Muti_Sensor_Data.Soil_Temp_Flag == 1 ? Serial.print(((float)(65536 - Muti_Sensor_Data.Soil_Temp)) / 10 * -1) : Serial.print(Muti_Sensor_Data.Soil_Temp / 10);
+    Serial.println("℃");
+    Serial.print("Soil Humi: "); Serial.print(Muti_Sensor_Data.Soil_Humi); Serial.println("%RH");
+    Serial.print("Soil Cond: "); Serial.print(Muti_Sensor_Data.Soil_Cond); Serial.println("us/cm");
+    Serial.print("Soil Salt；"); Serial.print(Muti_Sensor_Data.Soil_Salt); Serial.println("mg/L");
+    Serial.print("GreenHouse Temp: "); 
+    Muti_Sensor_Data.Air_Temp_Flag == 1 ? Serial.print(((float)(65536 - Muti_Sensor_Data.GreenHouse_Temp)) / 10 * -1) : Serial.print(Muti_Sensor_Data.GreenHouse_Temp / 10);
+    Serial.println("℃");
+    Serial.print("GreenHouse Humi: "); Serial.print(Muti_Sensor_Data.GreenHouse_Humi); Serial.println("%RH");
+    Serial.print("GreenHouse Atmos: "); Serial.print(Muti_Sensor_Data.GreenHouse_Atmos); Serial.println("Pa");
+    Serial.print("GreenHouse Lux: "); Serial.print(Muti_Sensor_Data.GreenHouse_Lux); Serial.println("Lux");
+    Serial.print("GreenHouse uv: "); Serial.println(Muti_Sensor_Data.GreenHouse_UV); 
+    Serial.print("GreenHouse CO2: "); Serial.print(Muti_Sensor_Data.GreenHouse_CO2); Serial.println("ppm");
+    Serial.print("GreenHouse TVOC: "); Serial.print(Muti_Sensor_Data.GreenHouse_TVOC); Serial.println("ppm");
+    #endif
+
+    #if (TYPE06 || TYPE07)
+    if (Muti_Sensor_Data.Rainfall == 0)
+      Serial.println("Sunny day");
+    else if (Muti_Sensor_Data.Rainfall == 1)
+      Serial.println("Rain day");
+    else
+      Serial.println("Rain sensor abnormal");
+
+    #elif TYPE08
+    unsigned int Rainfall_Temp = 0;
+    Rainfall_Temp = Muti_Sensor_Data.Rainfall_Buffer[0] << 8 | Muti_Sensor_Data.Rainfall_Buffer[1];
+    Serial.print("Real time rainfall: "); Serial.print(Rainfall_Temp); Serial.println("mm");
+    Rainfall_Temp = Muti_Sensor_Data.Rainfall_Buffer[2] << 8 | Muti_Sensor_Data.Rainfall_Buffer[3];
+    Serial.print("hour rainfall: "); Serial.print(Rainfall_Temp); Serial.println("mm");
+    Rainfall_Temp = Muti_Sensor_Data.Rainfall_Buffer[4] << 8 | Muti_Sensor_Data.Rainfall_Buffer[5];
+    Serial.print("month time rainfall: "); Serial.print(Rainfall_Temp); Serial.println("mm");
+    Rainfall_Temp = Muti_Sensor_Data.Rainfall_Buffer[6] << 8 | Muti_Sensor_Data.Rainfall_Buffer[7];
+    Serial.print("year time rainfall: "); Serial.print(Rainfall_Temp); Serial.println("mm");
+    #endif
   #endif
 
   //查看目前EP保存的数据笔数。

@@ -5,16 +5,22 @@
 #include <RTClock.h>
 
 //RS485传感器地址定义
-#define SOIL_SENSOR_ADDR                    0x01
-#if (TYPE06 || TYPE07)
-#define RAINFALL_SENSOR_ADDR                0x02
-#elif TYPE08
-#define RAINFALL_SENSOR_ADDR                0x03
+#if GS100_DEVICE_V1_0
+  #define SOIL_SENSOR_ADDR                    0x01
+  #define SOIL_SENSOR_FOR_PH_ADDR             0x02
+#else
+  #define SOIL_SENSOR_ADDR                    0x01
+  #if (TYPE06 || TYPE07)
+  #define RAINFALL_SENSOR_ADDR                0x02
+  #elif TYPE08
+  #define RAINFALL_SENSOR_ADDR                0x03
+  #endif
+  #define GREENHOUSE_SENSOR_ADDR              0x08
+  #define AIR_SENSOR_ADDR                     0x05
+  #define WIND_RATE_SENSOR_ADDR               0x06
+  #define WIND_DIRECTION_SENSOR_ADDR          0x07
 #endif
-#define GREENHOUSE_SENSOR_ADDR              0x08
-#define AIR_SENSOR_ADDR                     0x05
-#define WIND_RATE_SENSOR_ADDR               0x06
-#define WIND_DIRECTION_SENSOR_ADDR          0x07
+
 
 #define g_Wait_Receive_Time     500
 #define g_Wait_Collect_Time     500
@@ -28,6 +34,7 @@ typedef struct{
   unsigned char Soil_Temp_Flag;       //土壤温度正负标志位
   unsigned int Soil_Cond;             //土壤电导率
   unsigned int Soil_Salt;             //土壤盐度
+  unsigned int Soil_PH;               //土壤PH
   unsigned char Rainfall;             //降雨降雪开关量
   unsigned char Rainfall_Buffer[8];
   unsigned int Water_Level;           //水位值
@@ -60,18 +67,27 @@ extern SENSOR_DATA Muti_Sensor_Data;
 void Read_Cond_and_Salt(unsigned int *cond, unsigned int *sat, unsigned char address);
 void Read_CO2_and_TVOC(unsigned int *co2, unsigned int *tvoc, unsigned char address);
 void Read_Soil_Temp_and_Humi(float *hum, unsigned int *tep, unsigned char *tep_flag, unsigned char address);
-void Read_Temp_and_Humi(float *hum, unsigned int *tep, unsigned char *tep_flag, unsigned char address);
-void Read_Lux(unsigned long int *lux_value, unsigned char address);
+void Read_Temp_and_Humi_for_Modbus(float *hum, unsigned int *tep, unsigned char *tep_flag, unsigned char address);
+void Read_Temp_and_Humi_for_I2C(float *hum, unsigned int *tep, unsigned char *tep_flag);
+void Read_Lux_for_Modbus(unsigned long int *lux_value, unsigned char address);
+void Read_Lux_for_I2C(unsigned long int *lux_value);
 void Read_Atmos(unsigned long int *atmos, unsigned char address);
 void Read_Rainfall(unsigned char *rainfall, unsigned char address);
 void Read_Photics_Rainfall(unsigned char *rainfall_buffer, unsigned char address);
-void Read_UV(unsigned int *uv, unsigned char address);
+void Read_UV_for_Modbus(unsigned int *uv, unsigned char address);
+void Read_UV_for_I2C(unsigned int *uv);
 void Read_Wind_Speed(float *wind_speed, unsigned int address);
 void Read_Wind_Direction(unsigned int *wind_direction, unsigned char address);
 
-unsigned int Get_Analogy1_Value(void);
-unsigned int Get_Analogy2_Value(void);
-unsigned int Get_Analogy3_Value(void);
+#if GS100_DEVICE_V1_0
+  unsigned int Get_Analogy1_Value(void);
+  void Read_Soil_PH_for_Modbus(unsigned int *ph, unsigned char address);
+#else
+  unsigned int Get_Analogy1_Value(void);
+  unsigned int Get_Analogy2_Value(void);
+  unsigned int Get_Analogy3_Value(void);
+#endif
+
 
 void Data_Acquisition(void);
 
