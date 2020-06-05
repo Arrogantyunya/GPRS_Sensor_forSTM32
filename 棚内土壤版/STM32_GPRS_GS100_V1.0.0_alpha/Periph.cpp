@@ -84,7 +84,7 @@ void Some_GPIO_Init(void)
 	#endif	
 }
 
-#if DEVICE_V2_5
+#if (DEVICE_V2_5 || GS100_DEVICE_V1_0)
 void EP_Write_Enable(void)
 {
 	digitalWrite(WP_PIN, LOW);
@@ -133,6 +133,7 @@ unsigned int Get_Bat_Voltage(unsigned char change_times = 11)
 	Vol_Temp *= ADC_RATE;
 	Vol_Temp *= VBAT_DIVIDER_RATIO;
 	unsigned int Vol_Value = (unsigned int)Vol_Temp;
+	Serial.println(String("电压Vol_Value = ") + Vol_Value + "mv");
 
 	return Vol_Value;
 }

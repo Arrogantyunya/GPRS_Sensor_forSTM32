@@ -11,6 +11,7 @@
 #define WEATHER_GREENHOUSE_V2 0x06 //第二代多合一气象站
 #define AIR_V2 0x07				   //第二代多合一气象站
 #define AIR_V3 0x08				   //第三代多合一气象站
+#define GS100_V1_0 0xA0		   	   //第一代GS100的GPRS版本
 
 //GPS保存策略
 #define NOT_SAVE 0x00

@@ -76,6 +76,8 @@ public:
     uchar available(){return recv_len;}
 };
 
+extern SoftwareI2C CJMCU6750;
+
 #endif
 /*********************************************************************************************************
   END FILE

@@ -310,6 +310,9 @@ static void Send_Air_Muti_Sensor_Data_to_Server(void)
 	Send_Air_Sensor_Buff[Air_Data_Length++] = AIR_V2;
 #elif TYPE08
 	Send_Air_Sensor_Buff[Air_Data_Length++] = AIR_V3;
+#elif TYPEA0
+	Send_Air_Sensor_Buff[Air_Data_Length++] = AIR_V3;
+	// Send_Air_Sensor_Buff[Air_Data_Length++] = GS100_V1_0;
 #endif
 
 	//大气温度
@@ -964,16 +967,16 @@ bool Send_EEPROM_Muti_Sensor_Data_to_Server(void)
 	if (Sys_Run_Para.g_Send_EP_Data_Flag == true)
 	{
 
-#if DEVICE_V2_5
-		EP_Write_Enable();
-#endif
+		#if (DEVICE_V2_5 || GS100_DEVICE_V1_0)
+				EP_Write_Enable();
+		#endif
 
-		EpromDb.open(EEPROM_BASE_ADDR);
-		EpromDb.clear(); //发送完成后，清除EEPROM数据
+				EpromDb.open(EEPROM_BASE_ADDR);
+				EpromDb.clear(); //发送完成后，清除EEPROM数据
 
-#if DEVICE_V2_5
-		EP_Write_Disable();
-#endif
+		#if (DEVICE_V2_5 || GS100_DEVICE_V1_0)
+				EP_Write_Disable();
+		#endif
 	}
 
 	time_t Now_Time = 0;
@@ -1010,6 +1013,7 @@ void Print_GSM_Card_Info(void)
 
 	SIMCCID = modem.getSimCCID(); //得到本卡的CCID码
 	Serial.println("SIMCCID:" + SIMCCID);
+	Serial.println("");
 }
 
 bool Is_Apply_For_ID(void)
@@ -1031,7 +1035,13 @@ bool Is_Apply_For_ID(void)
 		Request_ID_Frame[Frame_length++] = SysHostID[2];
 		Request_ID_Frame[Frame_length++] = SysHostID[3];
 
-		Request_ID_Frame[Frame_length++] = WEATHERSTATION;
+		#if DEVICE_V2_5
+			Request_ID_Frame[Frame_length++] = WEATHERSTATION;
+		#elif GS100_DEVICE_V1_0
+			Request_ID_Frame[Frame_length++] = WEATHERSTATION;
+			// Request_ID_Frame[Frame_length++] = GS100_V1_0;
+		#else
+		#endif
 
 		Request_ID_Frame[Frame_length++] = Com_PWD[0];
 		Request_ID_Frame[Frame_length++] = Com_PWD[1];
@@ -1094,6 +1104,7 @@ bool Is_Apply_For_ID(void)
 			}
 			if (Save_ID_Times > 2)
 			{
+				Serial.println("Save_ID_Times > 2 <Is_Apply_For_ID>");
 				client.stop();
 				return false;
 			}
@@ -1235,6 +1246,7 @@ void Receive_Sys_Param_From_Server(void)
 						}
 					}
 				}
+				Serial.println("");
 
 				//将服务器给的参数存到EEPROM中
 				if (Verify_Sys_Para())
@@ -1328,6 +1340,7 @@ bool Connect_to_The_Server(void)
 	else
 	{
 		Serial.println("Connect Sevice OK...");
+		Serial.println("");
 		GSM_STATUS_LED_OFF;
 		Server_STATUS_LED_ON;
 
@@ -1354,6 +1367,9 @@ bool Connect_to_The_Server(void)
 		Hand_Shake_Frame[Frame_Length++] = WEATHER_GREENHOUSE_V2;
 #elif TYPE07
 		Hand_Shake_Frame[Frame_Length++] = AIR_V2;
+#elif TYPEA0
+		Hand_Shake_Frame[Frame_Length++] = AIR_V2;
+		// Hand_Shake_Frame[Frame_Length++] = GS100_V1_0;
 #endif
 
 		Hand_Shake_Frame[Frame_Length++] = Com_PWD[0];
@@ -1401,14 +1417,21 @@ bool Connect_to_The_Server(void)
  */
 bool Send_Data_To_Server(void)
 {
+	Serial.println("发送数据至服务器 <Send_Data_To_Server>");
 	if (client.connected())
 	{
 
 		//读取EEPROM中的传感器数据和发送数据
 		if (Send_EEPROM_Muti_Sensor_Data_to_Server())
+		{
+			Serial.println("");
 			return true;
+		}
 		else
+		{
+			Serial.println("");
 			return false;
+		}
 	}
 	else
 	{
@@ -1419,6 +1442,7 @@ bool Send_Data_To_Server(void)
 			Save_SensorData_to_EEPROM();
 		}
 		client.stop();
+		Serial.println("");
 		return false;
 	}
 }

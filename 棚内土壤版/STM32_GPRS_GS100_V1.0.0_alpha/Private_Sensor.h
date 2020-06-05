@@ -6,8 +6,19 @@
 
 //RS485传感器地址定义
 #if GS100_DEVICE_V1_0
+  #define LUX_UV                              true
   #define SOIL_SENSOR_ADDR                    0x01
   #define SOIL_SENSOR_FOR_PH_ADDR             0x02
+  #define I2C_ADDR                            0x38 //UV sensor
+  #define PR_3000_ECTH_N01_V1  false  //未升级前的3合1传感器
+  #define PR_3000_ECTH_N01_V2  true   //升级后的3合1传感器
+  #define ST_500_Soil_PH		false//一款长的PH，第一代的PH
+  #define JXBS_3001_PH      true//两根针的款式，第二代的PH
+  //Integration Time
+  #define IT_1_2 0x0 //1/2T
+  #define IT_1   0x1 //1T
+  #define IT_2   0x2 //2T
+  #define IT_4   0x3 //4T
 #else
   #define SOIL_SENSOR_ADDR                    0x01
   #if (TYPE06 || TYPE07)
@@ -70,18 +81,20 @@ void Read_Soil_Temp_and_Humi(float *hum, unsigned int *tep, unsigned char *tep_f
 void Read_Temp_and_Humi_for_Modbus(float *hum, unsigned int *tep, unsigned char *tep_flag, unsigned char address);
 void Read_Temp_and_Humi_for_I2C(float *hum, unsigned int *tep, unsigned char *tep_flag);
 void Read_Lux_for_Modbus(unsigned long int *lux_value, unsigned char address);
-void Read_Lux_for_I2C(unsigned long int *lux_value);
 void Read_Atmos(unsigned long int *atmos, unsigned char address);
+void Read_Lux_and_UV_for_I2C(unsigned long int *lux_value,unsigned int *uv);
 void Read_Rainfall(unsigned char *rainfall, unsigned char address);
 void Read_Photics_Rainfall(unsigned char *rainfall_buffer, unsigned char address);
 void Read_UV_for_Modbus(unsigned int *uv, unsigned char address);
-void Read_UV_for_I2C(unsigned int *uv);
 void Read_Wind_Speed(float *wind_speed, unsigned int address);
 void Read_Wind_Direction(unsigned int *wind_direction, unsigned char address);
 
 #if GS100_DEVICE_V1_0
   unsigned int Get_Analogy1_Value(void);
   void Read_Soil_PH_for_Modbus(unsigned int *ph, unsigned char address);
+  void CJMCU6750_Init(void);
+  void Read_Solid_Humi_and_Temp(float *humi, unsigned int *temp, unsigned char *temp_flag, unsigned char addr);
+  void Read_Salt_and_Cond(unsigned int *salt, unsigned int *cond, unsigned char addr);
 #else
   unsigned int Get_Analogy1_Value(void);
   unsigned int Get_Analogy2_Value(void);

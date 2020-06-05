@@ -26,6 +26,8 @@
 
 #define _delay_us  100
 
+SoftwareI2C CJMCU6750;
+
 /*************************************************************************************************
  * Function Name: begin
  * Description:  config IO

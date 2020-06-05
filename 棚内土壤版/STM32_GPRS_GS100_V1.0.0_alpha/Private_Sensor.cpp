@@ -7,6 +7,8 @@
 #include "memory.h"
 #include "data_transmit.h"
 #include "Periph.h"
+#include "SHT1x.h"
+#include "MAX44009/i2c_MAX44009.h"
 
 SENSOR_DATA Muti_Sensor_Data;
 
@@ -77,6 +79,7 @@ void Read_Cond_and_Salt(unsigned int *cond, unsigned int *sat, unsigned char add
   *sat  = Salt_temp;
 }
 
+#if GS100_DEVICE_V1_0
 /*
  *brief   : ModBus协议采集土壤PH
  *para    : 无符号整型的PH、ModBus土壤PH传感器地址
@@ -84,8 +87,259 @@ void Read_Cond_and_Salt(unsigned int *cond, unsigned int *sat, unsigned char add
  */
 void Read_Soil_PH_for_Modbus(unsigned int *ph, unsigned char address)
 {
+  #if ST_500_Soil_PH
+    unsigned char Send_Cmd[8] = { 0x02, 0x03, 0x00, 0x08, 0x00, 0x01,0x00,0x00 };//02 03 0008 0001 05C8
+  #elif JXBS_3001_PH
+    unsigned char Send_Cmd[8] = { 0x02, 0x03, 0x00, 0x06, 0x00, 0x01, 0x00, 0x00 };
+  #endif
+	unsigned char Receive_Data[9] = { 0 };
+	unsigned char Length = 0;
+	unsigned int Send_CRC16 = 0, Receive_CRC16 = 0, Verify_CRC16 = 0;
+	unsigned int ph_temp = 0xFFFF;
 
+	Send_Cmd[0] = address; //Get sensor address
+
+	Send_CRC16 = N_CRC16(Send_Cmd, 6);
+	Send_Cmd[6] = Send_CRC16 >> 8;
+	Send_Cmd[7] = Send_CRC16 & 0xFF;
+
+	ModBus_Serial.write(Send_Cmd, 8);
+	delay(300);
+
+	while (ModBus_Serial.available() > 0)//02 03 02 02BC FC95就是0x2BC = 700,结果需要除以100，那么就是7
+	{
+		if (Length >= 8)
+		{
+			Serial.println("土壤酸碱度回执Length >= 8");
+			Length = 0;
+			break;
+		}
+		Receive_Data[Length++] = ModBus_Serial.read();
+	}
+
+	//Serial.println(String("土壤酸碱度回执Length = ") + Length);
+
+	Serial.println("---土壤酸碱度回执---");
+	if (Length > 0)
+	{
+		for (size_t i = 0; i < Length; i++)
+		{
+			Serial.print(Receive_Data[i], HEX);
+			Serial.print(" ");
+		}
+	}
+	Serial.println("");
+	Serial.println("---土壤酸碱度回执---");
+
+	Verify_CRC16 = N_CRC16(Receive_Data, 5);
+	Receive_CRC16 = Receive_Data[5] << 8 | Receive_Data[6];
+
+	if (Receive_CRC16 == Verify_CRC16) 
+  {
+		//Serial.println("SUCCESS");
+		//delay(3000);
+		ph_temp = Receive_Data[3] << 8 | Receive_Data[4];
+		Serial.println(String("ph_temp = ") + ph_temp);
+	}
+	else
+	{
+		Serial.println("PH Read Error!!!<Read_Soild_PH>");
+    return;
+	}
+
+  #if ST_500_Soil_PH
+    *ph = ph_temp * 10;
+    return 1;
+  #elif JXBS_3001_PH
+    *ph = ph_temp;
+  #endif
 }
+
+/*
+ *brief   : Initialize UV and Illumination sensors.
+ *para    : None
+ *return  : None
+ */
+void CJMCU6750_Init(void)
+{
+  CJMCU6750.begin(PB15, PB14);
+
+	CJMCU6750.beginTransmission(I2C_ADDR);
+	CJMCU6750.write((IT_1 << 2) | 0x02);
+	CJMCU6750.endTransmission();
+	delay(500);
+
+	if (max44009.initialize())  //Lux
+		Serial.println("Sensor MAX44009 found...");
+	else
+		Serial.println("Light Sensor missing !!!");
+}
+
+/*
+ *brief   : According to the ID address and register(ModBus) address of the soil sensor, read temperature and humidity
+ *para    : humidity, temperature, address
+ *return  : None
+ */
+void Read_Solid_Humi_and_Temp(float *humi, unsigned int *temp, unsigned char *temp_flag, unsigned char addr)
+{
+  #if PR_3000_ECTH_N01_V1
+	unsigned char Send_Cmd[8] = { 0x01, 0x03, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00 };
+  #elif PR_3000_ECTH_N01_V2
+    unsigned char Send_Cmd[8] = { 0x01, 0x03, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00 };
+  #else
+    unsigned char Send_Cmd[8] = { 0x01, 0x03, 0x00, 0x02, 0x00, 0x02, 0x00, 0x00 };
+  #endif
+	unsigned char Receive_Data[10] = { 0 };
+	unsigned char Length = 0;
+	unsigned int Send_CRC16 = 0, Receive_CRC16 = 0, Verify_CRC16 = 0;
+	float hum = 65535.0;
+	unsigned int humi_temp = 0xFFFF, tem_temp = 0xFFFF;
+	unsigned char temperature_flag = 0;
+
+	Send_Cmd[0] = addr; //Get sensor address
+
+	Send_CRC16 = N_CRC16(Send_Cmd, 6);
+	Send_Cmd[6] = Send_CRC16 >> 8;
+	Send_Cmd[7] = Send_CRC16 & 0xFF;
+
+	ModBus_Serial.write(Send_Cmd, 8);
+	delay(300);
+
+	while (ModBus_Serial.available() > 0) 
+	{
+		if (Length >= 9)
+		{
+			Serial.println("土壤温湿度回执Length >= 9");
+			Length = 0;
+			break;
+		}
+		Receive_Data[Length++] = ModBus_Serial.read();
+	}
+	//Serial.println(String("土壤温湿度回执Length = ") + Length);
+
+	Serial.println("---土壤温湿度回执---");
+	if (Length > 0)
+	{
+		for (size_t i = 0; i < Length; i++)
+		{
+			Serial.print(Receive_Data[i], HEX);
+			Serial.print(" ");
+		}
+	}
+	Serial.println("");
+	Serial.println("---土壤温湿度回执---");
+
+	if (Receive_Data[0] == 0) {
+		Verify_CRC16 = N_CRC16(&Receive_Data[1], 7);
+		Receive_CRC16 = Receive_Data[8] << 8 | Receive_Data[9];
+	}
+	else {
+		Verify_CRC16 = N_CRC16(Receive_Data, 7);
+		Receive_CRC16 = Receive_Data[7] << 8 | Receive_Data[8];
+	}
+
+	if (Receive_CRC16 == Verify_CRC16) {
+		if (Receive_Data[0] == 0) {
+			humi_temp = Receive_Data[4] << 8 | Receive_Data[5];
+			tem_temp = Receive_Data[6] << 8 | Receive_Data[7];
+		}
+		else {
+			humi_temp = Receive_Data[3] << 8 | Receive_Data[4];
+			tem_temp = Receive_Data[5] << 8 | Receive_Data[6];
+		}
+
+    #if PR_3000_ECTH_N01_V1
+        hum = (float)humi_temp / 100.0;
+    #elif PR_3000_ECTH_N01_V2
+        hum = (float)humi_temp / 10.0;
+    #else
+        hum = (float)humi_temp / 10.0;
+    #endif
+
+		temperature_flag = ((tem_temp >> 15) & 0x01);
+	}
+	else
+	{
+		Serial.println("Read Solid Humi and Temp Error!!!<Read_Solid_Humi_and_Temp>");
+	}
+	
+
+	*humi = hum;
+	*temp = tem_temp;
+	*temp_flag = temperature_flag;
+}
+
+/*
+ *brief   : According to the ID address and register(ModBus) address of the soil sensor, read salt and conductivity
+ *para    : salt, conductivity, address
+ *return  : None
+ */
+void Read_Salt_and_Cond(unsigned int *salt, unsigned int *cond, unsigned char addr)
+{
+  #if PR_3000_ECTH_N01_V1
+	unsigned char Send_Cmd[8] = { 0x01, 0x03, 0x00, 0x02, 0x00, 0x02, 0x00, 0x00 };
+#elif PR_3000_ECTH_N01_V2
+	unsigned char Send_Cmd[8] = { 0x01, 0x03, 0x00, 0x02, 0x00, 0x02, 0x00, 0x00 };
+#else
+	unsigned char Send_Cmd[8] = { 0x01, 0x03, 0x00, 0x14, 0x00, 0x02, 0x00, 0x00 };
+#endif
+	unsigned char Receive_Data[10] = { 0 };
+	unsigned char Length = 0;
+	unsigned int Send_CRC16 = 0, Receive_CRC16 = 0, Verify_CRC16 = 0;
+	unsigned int salt_temp = 0xFFFF;
+	unsigned int cond_temp = 0xFFFF;
+
+	Send_Cmd[0] = addr; //Get sensor address
+
+	Send_CRC16 = N_CRC16(Send_Cmd, 6);
+	Send_Cmd[6] = Send_CRC16 >> 8;
+	Send_Cmd[7] = Send_CRC16 & 0xFF;
+
+	ModBus_Serial.write(Send_Cmd, 8);
+	delay(300);
+
+	while (ModBus_Serial.available() > 0)
+	{
+		if (Length >= 9)
+		{
+			Serial.println("土壤盐电导率回执Length >= 9");
+			Length = 0;
+			break;
+		}
+		Receive_Data[Length++] = ModBus_Serial.read();
+	}
+	//Serial.println(String("土壤盐电导率回执Length = ") + Length);
+	Serial.println("---土壤盐电导率回执---");
+	if (Length > 0)
+	{
+		for (size_t i = 0; i < 9; i++)
+		{
+			Serial.print(Receive_Data[i], HEX);
+			Serial.print(" ");
+		}
+	}
+	Serial.println("");
+	Serial.println("---土壤盐电导率回执---");
+
+	Verify_CRC16 = N_CRC16(Receive_Data, 7);
+	Receive_CRC16 = Receive_Data[7] << 8 | Receive_Data[8];
+
+	if (Receive_CRC16 == Verify_CRC16) {
+		salt_temp = Receive_Data[5] << 8 | Receive_Data[6];
+		cond_temp = Receive_Data[3] << 8 | Receive_Data[4];
+	}
+	else
+	{
+		Serial.println("Read Salt and Cond Error!!!<Read_Salt_and_Cond>");
+    return;
+	}
+	
+
+	*salt = salt_temp;
+	*cond = cond_temp;
+}
+
+#endif
 
 /*
  *brief   : ModBus协议采集C02和TVOC浓度
@@ -305,7 +559,9 @@ void Read_Temp_and_Humi_for_Modbus(float *hum, unsigned int *tep, unsigned char 
  */
 void Read_Temp_and_Humi_for_I2C(float *hum, unsigned int *tep, unsigned char *tep_flag)
 {
-
+  *tep = sht10.readTemperatureC();
+  delay(100);
+  *hum = sht10.readHumidity();
 }
 
 /*
@@ -381,13 +637,42 @@ void Read_Lux_for_Modbus(unsigned long int *lux_value, unsigned char address)
 } 
 
 /*
- *brief   : I2C协议采集光照强度
+ *brief   : I2C协议采集光照强度与紫外线
  *para    : 无符号长整型的光照强度参数、ModBus百叶箱地址
  *return  : 无
  */
-void Read_Lux_for_I2C(unsigned long int *lux_value)
+void Read_Lux_and_UV_for_I2C(unsigned long int *lux_value, unsigned int *uv)
 {
+  unsigned char msb = 0, lsb = 0;
+	unsigned long mLux_value = 0;
 
+	CJMCU6750_Init();
+
+  #if LUX_UV
+    CJMCU6750.requestFrom(I2C_ADDR + 1, 1); //MSB
+    delay(1);
+
+    if (CJMCU6750.available())
+      msb = CJMCU6750.read();
+
+    CJMCU6750.requestFrom(I2C_ADDR + 0, 1); //LSB
+    delay(1);
+
+    if (CJMCU6750.available())
+      lsb = CJMCU6750.read();
+
+    *uv = (msb << 8) | lsb;
+    *uv *= 0.005625;
+    Serial.print("UV : "); //output in steps (16bit)
+    Serial.println(*uv);
+  #endif
+
+	max44009.getMeasurement(mLux_value);
+
+	*lux_value = mLux_value / 1000L;
+	Serial.print("light intensity value:");
+	Serial.print(*lux_value);
+	Serial.println(" Lux");
 }
 
 /*
@@ -625,16 +910,6 @@ void Read_UV_for_Modbus(unsigned int *uv, unsigned char address)
 } 
 
 /*
- *brief   : I2C协议采集紫外线强度
- *para    : 无符号整型的紫外线强度参数、ModBus百叶箱地址
- *return  : 无
- */
-void Read_UV_for_I2C(unsigned int *uv)
-{
-
-}
-
-/*
  *brief   : ModBus协议采集风速传感器
  *para    : 浮点型的风速参数、ModBus风速传感器地址
  *return  : 无
@@ -802,31 +1077,51 @@ unsigned int Get_Analogy1_Value(void)
 void Data_Acquisition(void)
 {
   RS485_BUS_PWR_ON;
-  delay(5000);
+  #if GS100_DEVICE_V1_0
+    delay(1500);
+  #else
+    delay(5000);
+  #endif
+  
 
   #if GS100_DEVICE_V1_0
     //读取棚内温度和湿度
     Read_Temp_and_Humi_for_I2C(&Muti_Sensor_Data.GreenHouse_Humi, &Muti_Sensor_Data.GreenHouse_Temp, &Muti_Sensor_Data.GreenHouse_Temp_Flag);
     delay(g_Wait_Collect_Time);
 
-    //读取棚内光照强度
-    Read_Lux_for_I2C(&Muti_Sensor_Data.GreenHouse_Lux);
-    delay(g_Wait_Collect_Time);
-
-    //读取棚内紫外线强度
-    Read_UV_for_I2C(&Muti_Sensor_Data.GreenHouse_UV);
+    //读取棚内光照强度与紫外线强度
+    Read_Lux_and_UV_for_I2C(&Muti_Sensor_Data.GreenHouse_Lux, &Muti_Sensor_Data.GreenHouse_UV);
     delay(g_Wait_Collect_Time);
 
     //读取土壤温度和湿度
-    Read_Soil_Temp_and_Humi(&Muti_Sensor_Data.Soil_Humi, &Muti_Sensor_Data.Soil_Temp, &Muti_Sensor_Data.Soil_Temp_Flag, SOIL_SENSOR_ADDR);
+    Read_Solid_Humi_and_Temp(&Muti_Sensor_Data.Soil_Humi, &Muti_Sensor_Data.Soil_Temp, &Muti_Sensor_Data.Soil_Temp_Flag, SOIL_SENSOR_ADDR);
     delay(g_Wait_Collect_Time);
 
     //读取土壤电导率和盐分
-    Read_Cond_and_Salt(&Muti_Sensor_Data.Soil_Cond, &Muti_Sensor_Data.Soil_Salt, SOIL_SENSOR_ADDR);
+    Read_Salt_and_Cond(&Muti_Sensor_Data.Soil_Cond, &Muti_Sensor_Data.Soil_Salt, SOIL_SENSOR_ADDR);
     delay(g_Wait_Collect_Time);
 
     //读取土壤PH
     Read_Soil_PH_for_Modbus(&Muti_Sensor_Data.Soil_PH, SOIL_SENSOR_FOR_PH_ADDR);
+
+    Serial.println("");
+    Serial.println(String("temperature: ") + Muti_Sensor_Data.GreenHouse_Temp + " ℃");
+    Serial.println(String("humility: ") + Muti_Sensor_Data.GreenHouse_Humi + " %RH");
+    Serial.println(String("LUX: ") + Muti_Sensor_Data.GreenHouse_Lux + " Lux");
+    Serial.println(String("UV: ") + Muti_Sensor_Data.GreenHouse_UV + " W/m2");
+    #if PR_3000_ECTH_N01_V1
+      Serial.println(String("Solid temperature: ") + Muti_Sensor_Data.Soil_Temp / 100 + " ℃");
+      Serial.println(String("Solid humility: ") + Muti_Sensor_Data.Soil_Humi + " %RH");
+    #elif PR_3000_ECTH_N01_V2
+      Serial.println(String("Solid temperature: ") + Muti_Sensor_Data.Soil_Temp / 10 + " ℃");
+      Serial.println(String("Solid humility: ") + Muti_Sensor_Data.Soil_Humi + " %RH");
+    #else
+        
+    #endif
+    Serial.println(String("Solid salt: ") + Muti_Sensor_Data.Soil_Salt + " mg/L");
+    Serial.println(String("Solid cond: ") + Muti_Sensor_Data.Soil_Cond + " us/cm");
+    Serial.println(String("Solid PH: ") + float(Muti_Sensor_Data.Soil_PH)/100 + " ");	
+    Serial.println("");
   #else
     #if TYPE06
     //读取土壤温度和湿度
@@ -975,11 +1270,13 @@ void Data_Acquisition(void)
   interrupts();
 
   //如果EP中已经保存过传感器数据，且数据笔数小于能保存的最大值
-  if ((Muti_Sensor_Data_Count >= 1) && (Muti_Sensor_Data_Count < EEPROM_MAX_RECORD)){
+  if ((Muti_Sensor_Data_Count >= 1) && (Muti_Sensor_Data_Count < EEPROM_MAX_RECORD))
+  {
     //将采集到的数据存入EEPROM中
     Muti_Sensor_Data_Base_Init();
     Save_SensorData_to_EEPROM();
     //置位已保存数据标志位，避免后面出现重复初始化保存等工作。
     Sys_Run_Para.g_Already_Save_Data_Flag = true;
   }
+  Serial.println("");
 }

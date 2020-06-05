@@ -18,7 +18,7 @@
 #define PRINT_DEBUG   0
 
 //EEPROM capacity
-#define TABLE_SIZE 131072 
+#define TABLE_SIZE 12384//128*128字节//131072 
 
 //Serial port config.
 #if DEVICE_V2_5
@@ -30,8 +30,8 @@
     #define ModBus_Serial               Serial3
     #define LoRa_Serial                 Serial1
 #elif GS100_DEVICE_V1_0
-    #define GSM_Serial                  Serial2
-    #define ModBus_Serial               Serial3
+    #define GSM_Serial                  Serial1//USART2 --> USART1, when use serial upload
+    #define ModBus_Serial               Serial2//USART3 --> USART2, when use serial upload
     // #define LoRa_Serial                 Serial2//取消了LoRa的接口
 #endif
 
@@ -143,6 +143,6 @@
 //电池输入电压分压比
 #define VBAT_DIVIDER_RATIO                  6  
 
-#define MIN_BAT_VOL                         6800
+#define MIN_BAT_VOL                         3300//6800
 
 #endif

@@ -119,7 +119,7 @@ bool Read_BKP_HostID(unsigned char *sys_hostID)
  */
 bool EP_Save_HostID(unsigned char *sys_hostID)
 {
-#if DEVICE_V2_5
+#if (DEVICE_V2_5 || GS100_DEVICE_V1_0)
 	EP_Write_Enable();
 #endif
 
@@ -130,7 +130,7 @@ bool EP_Save_HostID(unsigned char *sys_hostID)
 
 	EEPROM1024.write(EP_SYS_HOSTID_VERIFY, ID_Verify);
 
-#if DEVICE_V2_5
+#if (DEVICE_V2_5 || GS100_DEVICE_V1_0)
 	EP_Write_Disable();
 #endif
 
@@ -148,7 +148,7 @@ bool EP_Save_HostID(unsigned char *sys_hostID)
  */
 bool EP_Save_BKP_HostID(unsigned char *sys_hostID)
 {
-#if DEVICE_V2_5
+#if (DEVICE_V2_5 || GS100_DEVICE_V1_0)
 	EP_Write_Enable();
 #endif
 
@@ -159,7 +159,7 @@ bool EP_Save_BKP_HostID(unsigned char *sys_hostID)
 
 	EEPROM1024.write(EP_SYS_HOSTID_BKP_VERIFY, ID_Verify);
 
-#if DEVICE_V2_5
+#if (DEVICE_V2_5 || GS100_DEVICE_V1_0)
 	EP_Write_Disable();
 #endif
 
@@ -339,7 +339,11 @@ void Clear_SYS_HOSTID(void)
 {
 	bkp_enable_writes();
 
-#if DEVICE_V2_5
+#if (DEVICE_V2_5 || GS100_DEVICE_V1_0)
+	EP_Write_Enable();
+#endif
+
+#if GS100_DEVICE_V1_0
 	EP_Write_Enable();
 #endif
 
@@ -351,7 +355,11 @@ void Clear_SYS_HOSTID(void)
 		EEPROM1024.write(EP_SYS_HOSTID_BKP_BASE_ADDR + i, 0);
 	}
 
-#if DEVICE_V2_5
+#if (DEVICE_V2_5 || GS100_DEVICE_V1_0)
+	EP_Write_Disable();
+#endif
+
+#if GS100_DEVICE_V1_0
 	EP_Write_Disable();
 #endif
 }
@@ -407,7 +415,7 @@ void Muti_Sensor_Data_Base_Init(void)
 	unsigned long Sensor_Count = 0;
 	EDB_Status Sensor_Result;
 
-#if DEVICE_V2_5
+#if (DEVICE_V2_5 || GS100_DEVICE_V1_0)
 	EP_Write_Enable();
 #endif
 
@@ -421,7 +429,7 @@ void Muti_Sensor_Data_Base_Init(void)
 		Sensor_Result = EpromDb.create(EEPROM_BASE_ADDR, TABLE_SIZE, (unsigned int)sizeof(Muti_Sensor_Data));
 	}
 
-#if DEVICE_V2_5
+#if (DEVICE_V2_5 || GS100_DEVICE_V1_0)
 	EP_Write_Disable();
 #endif
 
@@ -476,7 +484,7 @@ void Save_SensorData_to_EEPROM(void)
 
 	noInterrupts();
 
-#if DEVICE_V2_5
+#if (DEVICE_V2_5 || GS100_DEVICE_V1_0)
 	EP_Write_Enable();
 #endif
 
@@ -513,7 +521,7 @@ void Save_SensorData_to_EEPROM(void)
 	else
 		Sys_Run_Para.g_Send_EP_Data_Flag = false; //用来标识EEPROM损坏与否
 
-#if DEVICE_V2_5
+#if (DEVICE_V2_5 || GS100_DEVICE_V1_0)
 	EP_Write_Disable();
 #endif
 
@@ -529,7 +537,7 @@ void Save_Param_to_EEPROM(void)
 {
 	noInterrupts();
 
-#if DEVICE_V2_5
+#if (DEVICE_V2_5 || GS100_DEVICE_V1_0)
 	EP_Write_Enable();
 #endif
 
@@ -547,7 +555,7 @@ void Save_Param_to_EEPROM(void)
 	EEPROM1024.write(SYS_RUN_MODE_HIGH_ADDR, highByte(Sys_Run_Para.g_Run_Mode));
 	EEPROM1024.write(SYS_RUN_MODE_LOW_ADDR, lowByte(Sys_Run_Para.g_Run_Mode));
 
-#if DEVICE_V2_5
+#if (DEVICE_V2_5 || GS100_DEVICE_V1_0)
 	EP_Write_Disable();
 #endif
 
@@ -563,14 +571,14 @@ void Save_Sys_Current_Record(unsigned int now_record)
 {
 	noInterrupts();
 
-#if DEVICE_V2_5
+#if (DEVICE_V2_5 || GS100_DEVICE_V1_0)
 	EP_Write_Enable();
 #endif
 
 	EEPROM1024.write(SYS_CURRENT_RECORD_HIGH_ADDR, highByte(now_record));
 	EEPROM1024.write(SYS_CURRENT_RECORD_LOW_ADDR, lowByte(now_record));
 
-#if DEVICE_V2_5
+#if (DEVICE_V2_5 || GS100_DEVICE_V1_0)
 	EP_Write_Disable();
 #endif
 

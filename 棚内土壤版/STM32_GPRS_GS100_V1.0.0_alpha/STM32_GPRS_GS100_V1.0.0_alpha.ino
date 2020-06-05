@@ -12,6 +12,8 @@
 #include "private_delay.h"
 #include "Periph.h"
 #include "Private_RTC.h"
+#include "AT24C1024.h"
+
 TinyGsm modem(GSM_Serial);
 
 TinyGsmClient client(modem);
@@ -26,17 +28,36 @@ void setup()
 	Serial.begin(115200); //USB serial port.
 	ModBus_Serial.begin(9600);
 	GSM_Serial.begin(9600);
+	delay(3000);
 
+	// #if (DEVICE_V2_5 || GS100_DEVICE_V1_0)
+	// 	EP_Write_Enable();
+	// #endif
+
+	// EpromDb.open(EEPROM_BASE_ADDR);
+	// EpromDb.clear();
+
+	// #if (DEVICE_V2_5 || GS100_DEVICE_V1_0)
+	// 	EP_Write_Disable();
+	// #endif
+	
 	bkp_init();
+	Serial.println("bkp初始化完成");
 
 	//初始化RTC闹钟
 	Init_RTC(180);
+	Serial.println("RTC闹钟初始化完成");
 
 	//如果电池电压小于6.5V，设备休眠
 	if (Get_Bat_Voltage(DEFAULT_VOL_CHANGE_TIMES) < MIN_BAT_VOL)
+	{
+		Serial.println("电压极低，进入休眠状态");
+		delay(100);
 		SYS_Sleep();
+	}
 
 	System_ID_Self_Check(SysHostID); //系统ID自检
+	Serial.println("系统ID自检完成");
 
 	Key_Clear_Device_Parameter(); //按键2清除系统参数，慎用
 	Key_Clear_Muti_Sensor_Data(); //按键1清除存储在EP中的传感器数据
@@ -46,21 +67,49 @@ void setup()
 	Timer2.setPeriod(1000000); // in microseconds，1S
 	Timer2.setCompare1(1);	   // overflow might be small
 	Timer2.attachCompare1Interrupt(Time2_Handler);
+	Serial.println("定时器2初始化完成");
 
 	//RS485模块开始采集传感器数据
+	Serial.println("开始采集传感器数据...");
 	Data_Acquisition();
 }
 
 void loop()
 {
 	if(Get_Bat_Voltage(DEFAULT_VOL_CHANGE_TIMES) < MIN_BAT_VOL)
-    	SYS_Sleep();
+	{
+    	Serial.println("电压极低，进入休眠状态");
+		delay(100);
+		SYS_Sleep();
+	}
 
-  	if(!Pre_Access_Network()) SYS_Sleep();
+  	if(!Pre_Access_Network())//注册到网络
+	{
+		Serial.println("注册到网络失败，进入休眠 <Pre_Access_Network>");
+		delay(100);
+		SYS_Sleep();
+	}
 
-  	if(!Connect_to_The_Server()) SYS_Sleep();
+  	if(!Connect_to_The_Server())//连接到服务器
+	{
+		Serial.println("连接到服务器失败，进入休眠 <Connect_to_The_Server>");
+		delay(100);
+		SYS_Sleep();
+	}
 
-  	Send_Data_To_Server() == true ? SYS_Sleep() : nvic_sys_reset();
+  	// Send_Data_To_Server() == true ? SYS_Sleep() : nvic_sys_reset();
+	if (Send_Data_To_Server() == true)
+	{
+		Serial.println("发送数据至服务器完成，进入休眠 <Send_Data_To_Server>");
+		delay(100);
+		SYS_Sleep();
+	}
+	else
+	{
+		Serial.println("发送数据至服务器失败，重启 <Send_Data_To_Server>");
+		delay(100);
+		nvic_sys_reset();
+	}
 }
 
 /*
@@ -129,14 +178,14 @@ void Key_Clear_Muti_Sensor_Data(void)
 		Delay_ms(1000);
 		if (digitalRead(KEY1_INPUT) == LOW)
 		{
-			#if DEVICE_V2_5
+			#if (DEVICE_V2_5 || GS100_DEVICE_V1_0)
 				EP_Write_Enable();
 			#endif
 
 			EpromDb.open(EEPROM_BASE_ADDR);
 			EpromDb.clear();
 
-			#if DEVICE_V2_5
+			#if (DEVICE_V2_5 || GS100_DEVICE_V1_0)
 				EP_Write_Disable();
 			#endif
 
