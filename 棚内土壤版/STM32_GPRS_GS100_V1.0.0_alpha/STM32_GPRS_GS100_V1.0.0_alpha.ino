@@ -97,7 +97,6 @@ void loop()
 		SYS_Sleep();
 	}
 
-  	// Send_Data_To_Server() == true ? SYS_Sleep() : nvic_sys_reset();
 	if (Send_Data_To_Server() == true)
 	{
 		Serial.println("发送数据至服务器完成，进入休眠 <Send_Data_To_Server>");

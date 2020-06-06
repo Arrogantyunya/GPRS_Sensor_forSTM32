@@ -63,7 +63,7 @@ static void Send_GPS_Info(void)
 		PosData_Buffer[PosIndex++] = SysHostID[2];
 		PosData_Buffer[PosIndex++] = SysHostID[3];
 
-#if TYPE06
+#if (TYPE06||TYPEA0)
 		PosData_Buffer[PosIndex++] = WEATHER_GREENHOUSE_V2;
 #elif TYPE07
 		PosData_Buffer[PosIndex++] = AIR_V2;
@@ -150,6 +150,13 @@ static void Send_GPS_Info(void)
 
 		PosData_Buffer[PosIndex++] = 0x0D;
 
+		Serial.print(">>>");
+		for (size_t i = 0; i < PosIndex; i++)
+		{
+			Serial.print(PosData_Buffer[i], HEX);
+			Serial.print(" ");
+		}
+		Serial.println("<<<");
 		client.write(PosData_Buffer, PosIndex);
 	}
 	//如果从服务器获取的定位信息参数是G，发送GPS定位
@@ -166,7 +173,7 @@ static void Send_GPS_Info(void)
 		PosData_Buffer[PosIndex++] = SysHostID[2];
 		PosData_Buffer[PosIndex++] = SysHostID[3];
 
-#if TYPE06
+#if (TYPE06||TYPEA0)
 		PosData_Buffer[PosIndex++] = WEATHER_GREENHOUSE_V2;
 #elif TYPE07
 		PosData_Buffer[PosIndex++] = AIR_V2;
@@ -266,6 +273,13 @@ static void Send_GPS_Info(void)
 
 		PosData_Buffer[PosIndex++] = 0x0D;
 
+		Serial.print(">>>");
+		for (size_t i = 0; i < PosIndex; i++)
+		{
+			Serial.print(PosData_Buffer[i], HEX);
+			Serial.print(" ");
+		}
+		Serial.println("<<<");
 		client.write(PosData_Buffer, PosIndex);
 	}
 }
@@ -286,7 +300,7 @@ static void Send_Air_Muti_Sensor_Data_to_Server(void)
 	Air_Data_Length = 0;
 
 	Send_Air_Sensor_Buff[Air_Data_Length++] = 0xFE;
-#if TYPE06
+#if (TYPE06||TYPEA0)
 	Send_Air_Sensor_Buff[Air_Data_Length++] = 0xCB;
 	Send_Air_Sensor_Buff[Air_Data_Length++] = 0x54;
 
@@ -304,15 +318,12 @@ static void Send_Air_Muti_Sensor_Data_to_Server(void)
 	Send_Air_Sensor_Buff[Air_Data_Length++] = SysHostID[2];
 	Send_Air_Sensor_Buff[Air_Data_Length++] = SysHostID[3];
 
-#if TYPE06
+#if (TYPE06||TYPEA0)
 	Send_Air_Sensor_Buff[Air_Data_Length++] = WEATHER_GREENHOUSE_V2;
 #elif TYPE07
 	Send_Air_Sensor_Buff[Air_Data_Length++] = AIR_V2;
 #elif TYPE08
 	Send_Air_Sensor_Buff[Air_Data_Length++] = AIR_V3;
-#elif TYPEA0
-	Send_Air_Sensor_Buff[Air_Data_Length++] = AIR_V3;
-	// Send_Air_Sensor_Buff[Air_Data_Length++] = GS100_V1_0;
 #endif
 
 	//大气温度
@@ -327,11 +338,19 @@ static void Send_Air_Muti_Sensor_Data_to_Server(void)
 
 		if (Muti_Sensor_Data.Air_Temp_Flag == 1)
 		{
+			#if TYPEA0
+			Temperature = (float)(65536 - Muti_Sensor_Data.Air_Temp);
+			#else
 			Temperature = (float)(65536 - Muti_Sensor_Data.Air_Temp) / 10.0;
+			#endif
 		}
 		else
 		{
+			#if TYPEA0
+			Temperature = (float)(Muti_Sensor_Data.Air_Temp);
+			#else
 			Temperature = (float)(Muti_Sensor_Data.Air_Temp) / 10.0;
+			#endif
 		}
 
 		PackBCD((char *)Data_BCD, Temperature, 4, NumOfDot);   //读取回来BCD数据数组、大气温度传感器数据、数据宽度、数据小数
@@ -486,7 +505,7 @@ static void Send_Air_Muti_Sensor_Data_to_Server(void)
 	}
 	Send_Air_Sensor_Buff[Air_Data_Length++] = 0xE0 | NumOfDot;
 
-#if TYPE06
+#if (TYPE06||TYPEA0)
 	//大棚温度
 	NumOfDot = 2;
 	memset(Data_BCD, 0x00, sizeof(Data_BCD));
@@ -500,11 +519,20 @@ static void Send_Air_Muti_Sensor_Data_to_Server(void)
 	{
 		if (Muti_Sensor_Data.GreenHouse_Temp_Flag == 1)
 		{
+			#if TYPEA0
+			Temperature = (float)(65536 - Muti_Sensor_Data.GreenHouse_Temp);
+			#else
 			Temperature = (float)(65536 - Muti_Sensor_Data.GreenHouse_Temp) / 10.0;
+			#endif
 		}
 		else
 		{
+			#if TYPEA0
+			Temperature = (float)(Muti_Sensor_Data.GreenHouse_Temp);
+			#else
 			Temperature = (float)(Muti_Sensor_Data.GreenHouse_Temp) / 10.0;
+			#endif
+			
 		}
 
 		PackBCD((char *)Data_BCD, Temperature, 4, NumOfDot);
@@ -742,7 +770,7 @@ static void Send_Air_Muti_Sensor_Data_to_Server(void)
 
 #endif
 
-#if (TYPE06 || TYPE07)
+#if (TYPE06 || TYPE07 || TYPEA0)
 	//雨雪变送器
 	Send_Air_Sensor_Buff[Air_Data_Length++] = Muti_Sensor_Data.Rainfall;
 
@@ -814,6 +842,14 @@ static void Send_Air_Muti_Sensor_Data_to_Server(void)
 
 	Send_Air_Sensor_Buff[Air_Data_Length++] = 0x0D;
 
+	Serial.print(">>>");
+	for (size_t i = 0; i < Air_Data_Length; i++)
+	{
+		Serial.print(Send_Air_Sensor_Buff[i], HEX);
+		Serial.print(" ");
+	}
+	Serial.println("<<<");
+
 	client.write(Send_Air_Sensor_Buff, Air_Data_Length);
 }
 
@@ -867,6 +903,13 @@ static void Send_Phone_Data_to_Server(void)
 	Send_Phone_Buf[Phone_Sindex++] = CRC8_OfTxDataToServer;
 	Send_Phone_Buf[Phone_Sindex++] = 0x0D;
 
+	Serial.print(">>>");
+	for (size_t i = 0; i < Phone_Sindex; i++)
+	{
+		Serial.print(Send_Phone_Buf[i], HEX);
+		Serial.print(" ");
+	}
+	Serial.println("<<<");
 	client.write(Send_Phone_Buf, Phone_Sindex);
 }
 
@@ -1060,6 +1103,13 @@ bool Is_Apply_For_ID(void)
 		while (client.connected() && (Save_ID_Flag != true))
 		{
 			//请求服务器分配用户终端编号
+			Serial.print(">>>");
+			for (size_t i = 0; i < Frame_length; i++)
+			{
+				Serial.print(Request_ID_Frame[i], HEX);
+				Serial.print(" ");
+			}
+			Serial.println("<<<");
 			client.write(Request_ID_Frame, Frame_length);
 			delay(1000);
 
@@ -1363,13 +1413,10 @@ bool Connect_to_The_Server(void)
 		Hand_Shake_Frame[Frame_Length++] = SysHostID[2];
 		Hand_Shake_Frame[Frame_Length++] = SysHostID[3];
 
-#if TYPE06
+#if (TYPE06||TYPEA0)
 		Hand_Shake_Frame[Frame_Length++] = WEATHER_GREENHOUSE_V2;
 #elif TYPE07
 		Hand_Shake_Frame[Frame_Length++] = AIR_V2;
-#elif TYPEA0
-		Hand_Shake_Frame[Frame_Length++] = AIR_V2;
-		// Hand_Shake_Frame[Frame_Length++] = GS100_V1_0;
 #endif
 
 		Hand_Shake_Frame[Frame_Length++] = Com_PWD[0];
@@ -1389,6 +1436,13 @@ bool Connect_to_The_Server(void)
 			//如果网络还在连接，发送握手帧
 			if (client.connected())
 			{
+				Serial.print(">>>");
+				for (size_t i = 0; i < Frame_Length; i++)
+				{
+					Serial.print(Hand_Shake_Frame[i], HEX);
+					Serial.print(" ");
+				}
+				Serial.println("<<<");
 				client.write(Hand_Shake_Frame, Frame_Length);
 				delay(1000);
 			}
@@ -1442,7 +1496,7 @@ bool Send_Data_To_Server(void)
 			Save_SensorData_to_EEPROM();
 		}
 		client.stop();
-		Serial.println("");
+		
 		return false;
 	}
 }

@@ -1104,6 +1104,20 @@ void Data_Acquisition(void)
     //读取土壤PH
     Read_Soil_PH_for_Modbus(&Muti_Sensor_Data.Soil_PH, SOIL_SENSOR_FOR_PH_ADDR);
 
+    RS485_BUS_PWR_OFF;
+    
+    //得到当前采集时间
+    UTCTime CurrentSec = 0;
+    CurrentSec = InRtc.getTime();
+    osal_ConvertUTCTime(&RtcTime, CurrentSec);
+
+    Muti_Sensor_Data.curTime.tm_year = RtcTime.year;
+    Muti_Sensor_Data.curTime.tm_mon  = RtcTime.month;
+    Muti_Sensor_Data.curTime.tm_mday = RtcTime.day;
+    Muti_Sensor_Data.curTime.tm_hour = RtcTime.hour;
+    Muti_Sensor_Data.curTime.tm_min  = RtcTime.minutes;
+    Muti_Sensor_Data.curTime.tm_sec  = RtcTime.seconds; 
+
     Serial.println("");
     Serial.println(String("temperature: ") + Muti_Sensor_Data.GreenHouse_Temp + " ℃");
     Serial.println(String("humility: ") + Muti_Sensor_Data.GreenHouse_Humi + " %RH");
