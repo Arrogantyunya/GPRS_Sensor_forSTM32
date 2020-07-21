@@ -520,7 +520,7 @@ static void Send_Air_Muti_Sensor_Data_to_Server(void)
 		if (Muti_Sensor_Data.GreenHouse_Temp_Flag == 1)
 		{
 			#if TYPEA0
-			Temperature = (float)(65536 - Muti_Sensor_Data.GreenHouse_Temp);
+			Temperature = (float)(Muti_Sensor_Data.GreenHouse_Temp);
 			#else
 			Temperature = (float)(65536 - Muti_Sensor_Data.GreenHouse_Temp) / 10.0;
 			#endif
