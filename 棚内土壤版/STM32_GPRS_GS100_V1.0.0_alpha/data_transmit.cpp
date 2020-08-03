@@ -510,34 +510,28 @@ static void Send_Air_Muti_Sensor_Data_to_Server(void)
 	NumOfDot = 2;
 	memset(Data_BCD, 0x00, sizeof(Data_BCD));
 
-	if ((Muti_Sensor_Data.GreenHouse_Temp >= 65535) && (Muti_Sensor_Data.GreenHouse_Temp_Flag != 1))
+	if ((int)(Muti_Sensor_Data.GreenHouse_Temp >= 65535) && (int)(Muti_Sensor_Data.GreenHouse_Temp_Flag != 1))
 	{
 		Send_Air_Sensor_Buff[Air_Data_Length++] = 0xFF;
 		Send_Air_Sensor_Buff[Air_Data_Length++] = 0xFF;
 	}
 	else
 	{
-		if (Muti_Sensor_Data.GreenHouse_Temp_Flag == 1)
+		if (Muti_Sensor_Data.GreenHouse_Temp_Flag == true)
 		{
-			#if TYPEA0
-			Temperature = (float)(Muti_Sensor_Data.GreenHouse_Temp);
-			#else
-			Temperature = (float)(65536 - Muti_Sensor_Data.GreenHouse_Temp) / 10.0;
-			#endif
+			Muti_Sensor_Data.GreenHouse_Temp = -Muti_Sensor_Data.GreenHouse_Temp;
+			Serial.println(String("(true)Muti_Sensor_Data.GreenHouse_Temp = ") + Muti_Sensor_Data.GreenHouse_Temp);
+			PackBCD((char *)Data_BCD, Temperature, 4, NumOfDot);
+			Send_Air_Sensor_Buff[Air_Data_Length++] = Data_BCD[0];
+			Send_Air_Sensor_Buff[Air_Data_Length++] = Data_BCD[1];
 		}
 		else
 		{
-			#if TYPEA0
-			Temperature = (float)(Muti_Sensor_Data.GreenHouse_Temp);
-			#else
-			Temperature = (float)(Muti_Sensor_Data.GreenHouse_Temp) / 10.0;
-			#endif
-			
+			Serial.println(String("(false)Muti_Sensor_Data.GreenHouse_Temp = ") + Muti_Sensor_Data.GreenHouse_Temp);
+			PackBCD((char *)Data_BCD, Muti_Sensor_Data.GreenHouse_Temp, 4, NumOfDot);
+			Send_Air_Sensor_Buff[Air_Data_Length++] = Data_BCD[0];
+			Send_Air_Sensor_Buff[Air_Data_Length++] = Data_BCD[1];
 		}
-
-		PackBCD((char *)Data_BCD, Temperature, 4, NumOfDot);
-		Send_Air_Sensor_Buff[Air_Data_Length++] = Data_BCD[0];
-		Send_Air_Sensor_Buff[Air_Data_Length++] = Data_BCD[1];
 	}
 
 	if (Muti_Sensor_Data.GreenHouse_Temp_Flag == 1)

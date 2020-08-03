@@ -14,6 +14,8 @@
   #define PR_3000_ECTH_N01_V2  true   //升级后的3合1传感器
   #define ST_500_Soil_PH		false//一款长的PH，第一代的PH
   #define JXBS_3001_PH      true//两根针的款式，第二代的PH
+  #define USE_SHT10         true//
+  #define USE_SHT20         false//
   //Integration Time
   #define IT_1_2 0x0 //1/2T
   #define IT_1   0x1 //1T
